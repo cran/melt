@@ -1,17 +1,28 @@
 #' @export
-print.test <- function(x, ...) {
+print.el_aov <- function(x, ...) {
+  stopifnot(inherits(x, "melt"))
+  cat("Call:\n   ")
+  dput(x$call, control = NULL)
+  cat("\nminimizer:\n")
+  cat(format(round(x$optim$par, 4), scientific = F))
+  cat("\n\n")
+  cat("statistic:\n")
+  cat(format(round(x$optim$n2logLR, 4), scientific = F))
+  cat("\n\n")
+}
+
+#' @export
+print.el_test <- function(x, ...) {
   stopifnot(inherits(x, "melt"))
   cat("\n")
   cat("Empirical Likelihood Hypothesis Testing\n\n")
   cat("minimizer:\n")
-  cat(format(round(x$theta, 4), scientific = F))
+  cat(format(round(x$optim$par, 4), scientific = F))
   cat("\n\n")
   cat("statistic:\n")
-  cat(format(round(x$n2logLR, 4), scientific = F))
+  cat(format(round(x$optim$n2logLR, 4), scientific = F))
   cat("\n\n")
 }
-
-
 
 #' @importFrom stats printCoefmat
 #' @export
@@ -116,25 +127,5 @@ print.pairwise <- function(x, ...) {
 #     }
 #     row_names
 #   }
-# }
-
-# print.pairwise <- function(x, ...) {
-#   stopifnot(inherits(x, "elmulttest"))
-#   cat("Empirical Likelihood Multiple Hypothesis Testing\n\n")
-#   if (all(x$test == "pairwise")) {
-#     cat("Test: all pairwise comparisons\n\n")
-#   } else {
-#     cat("Test: comparisons with control\n\n")
-#   }
-#   out <- data.frame(row.names =
-#                       elmulttest_rownames(length(x$statistic), x$trt, x$test))
-#   out$estimate  <- x$estimate
-#   out$statistic <- x$statistic
-#   out$lwr.ci    <- x$lower
-#   out$upr.ci    <- x$upper
-#   out$p.adj     <- x$p.adj
-#   print(format(round(out, 4), digits = 4))
-#   cat("---\n", "k: ", x$k, ", level: ", x$level, ", method: ", x$method,
-#       ", cutoff: ", round(x$cutoff, 4), "\n", sep = "")
 # }
 

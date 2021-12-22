@@ -1,7 +1,7 @@
 #include "utils_gbd.h"
 
 // [[Rcpp::export]]
-Rcpp::List test(const Eigen::MatrixXd& x,
+Rcpp::List ELtest(const Eigen::MatrixXd& x,
                 const Eigen::MatrixXd& c,
                 const Eigen::MatrixXd& lhs,
                 const Eigen::VectorXd& rhs,
@@ -10,14 +10,14 @@ Rcpp::List test(const Eigen::MatrixXd& x,
                 const double abstol = 1e-8) {
   // check lhs & rhs
   if (lhs.rows() > lhs.cols()) {
-    Rcpp::stop("nrow(lhs) must not exceed ncol(lhs).");
+    Rcpp::stop("nrow(lhs) must not exceed ncol(lhs)");
   }
   Eigen::FullPivLU<Eigen::MatrixXd> lu_decomp(lhs);
   if (lu_decomp.rank() != lhs.rows()) {
-    Rcpp::stop("lhs must have full rank.");
+    Rcpp::stop("lhs must have full rank");
   }
   if (lhs.rows() != rhs.rows()) {
-    Rcpp::stop("dimensions of lhs and rhs do not match.");
+    Rcpp::stop("dimensions of lhs and rhs do not match");
   }
 
   // global minimizer
@@ -28,12 +28,14 @@ Rcpp::List test(const Eigen::MatrixXd& x,
     test_gbd_EL(theta_hat, x, c, lhs, rhs, threshold, maxit, abstol);
 
   Rcpp::List result;
-  result["theta"] = el.theta;
-  result["lambda"] = el.lambda;
-  result["n2logLR"] = 2 * el.nlogLR;
-  result["convergence"] = el.convergence;
-  result["iterations"] = el.iterations;
-  result.attr("class") = Rcpp::CharacterVector({"test", "melt"});
+  result["coefficients"] = theta_hat;
+  result["optim"] = Rcpp::List::create(
+    Rcpp::Named("par") = el.theta,
+    Rcpp::Named("lambda") = el.lambda,
+    Rcpp::Named("n2logLR") = 2 * el.nlogLR,
+    Rcpp::Named("convergence") = el.convergence,
+    Rcpp::Named("iterations") = el.iterations
+    );
+  result.attr("class") = "melt";
   return result;
-
 }

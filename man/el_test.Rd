@@ -20,7 +20,7 @@ el_test(formula, data, lhs, rhs = NULL, maxit = 10000, abstol = 1e-08)
 \item{abstol}{Absolute convergence tolerance for optimization. Defaults to 1e-08.}
 }
 \value{
-A list with class \code{c("test", "melt")}.
+A list with class \code{c("el_test", "melt")}.
 }
 \description{
 Tests single hypothesis for general block designs.
@@ -32,4 +32,9 @@ el_test(clo ~ trt | blk, clothianidin,
                        0, 1, -1, 0,
                        0, 0, 1, -1), byrow = TRUE, nrow = 3))
 
+}
+\references{
+Kim, E., MacEachern, S., and Peruggia, M., (2021),
+"Empirical Likelihood for the Analysis of Experimental Designs,"
+\href{https://arxiv.org/abs/2112.09206}{arxiv:2112.09206}.
 }
