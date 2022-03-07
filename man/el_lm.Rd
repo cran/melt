@@ -2,36 +2,50 @@
 % Please edit documentation in R/el_lm.R
 \name{el_lm}
 \alias{el_lm}
-\title{Fit a Linear Model with Empirical Likelihood}
+\title{Fit a linear model with empirical likelihood}
 \usage{
-el_lm(formula, data, na.action, model = TRUE, maxit = 10000, abstol = 1e-08)
+el_lm(
+  formula,
+  data,
+  weights = NULL,
+  na.action,
+  control = list(),
+  keep.data = TRUE
+)
 }
 \arguments{
 \item{formula}{A formula object.}
 
 \item{data}{A data frame containing the variables in the formula.}
 
-\item{na.action}{A function which indicates what should happen when the data contain NAs.}
+\item{weights}{An optional numeric vector of weights.
+Defaults to \code{NULL}, corresponding to identical weights.
+If non \code{NULL}, weighted empirical likelihood is computed.}
 
-\item{model}{Logical. If TRUE the model frame is returned.}
+\item{na.action}{A function which indicates what should happen when the data
+contain \code{NA}s.}
 
-\item{maxit}{Maximum number of iterations for optimization. Defaults to 10000.}
+\item{control}{A list of control parameters. See ‘Details’ in
+\code{\link{el_eval}}.}
 
-\item{abstol}{Absolute convergence tolerance for optimization. Defaults to 1e-08.}
+\item{keep.data}{A logical. If \code{TRUE} the data matrix used in fitting is
+returned.}
 }
 \value{
-A list with class \code{c("el_lm", "melt")}.
+A list with class \code{c("el_lm", "el_test")}.
 }
 \description{
 Fit a linear model with empirical likelihood.
 }
 \examples{
-model <- el_lm(clo ~ trt, clothianidin)
-summary(model)
+fit <- el_lm(formula = mpg ~ wt, data = mtcars)
+summary(fit)
 }
 \references{
-Owen, Art. 1991. “Empirical Likelihood for Linear Models.” The Annals of Statistics 19 (4). \doi{10.1214/aos/1176348368}.
+Owen, Art. 1991. “Empirical Likelihood for Linear Models.”
+  The Annals of Statistics 19 (4).
+  \doi{10.1214/aos/1176348368}.
 }
 \seealso{
-\link{el_aov}
+\link{el_aov}, \link{el_eval}
 }

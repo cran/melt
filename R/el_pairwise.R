@@ -19,6 +19,7 @@
 #' \href{https://arxiv.org/abs/2112.09206}{arxiv:2112.09206}.
 #' @examples
 #' ## all pairwise comparisons
+#' data("clothianidin")
 #' el_pairwise(clo ~ trt | blk, clothianidin, B = 10000)
 #'
 #' ## comparisons with control
@@ -109,7 +110,7 @@ el_pairwise <- function(formula, data, control = NULL, k = 1, alpha = 0.05,
 
   ## pairwise comparisons
   out <- pairwise(gbd$model_matrix, gbd$incidence_matrix,
-                  control = ctrl, k, alpha, interval = T,
+                  control = ctrl, k, alpha, interval = TRUE,
                   method, B, nthread, progress,
                   threshold = 50, maxit, abstol)
   out$trt <- gbd$trt

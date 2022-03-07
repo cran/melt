@@ -10,6 +10,7 @@ Eigen::VectorXd linear_projection(
     const Eigen::Ref<const Eigen::VectorXd>& theta,
     const Eigen::Ref<const Eigen::MatrixXd>& lhs,
     const Eigen::Ref<const Eigen::VectorXd>& rhs);
+
 void linear_projection_void(
     Eigen::Ref<Eigen::VectorXd> theta,
     const Eigen::Ref<const Eigen::MatrixXd>& lhs,

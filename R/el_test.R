@@ -16,6 +16,7 @@
 #'
 #' @examples
 #' ## test for equal means
+#' data("clothianidin")
 #' el_test(clo ~ trt | blk, clothianidin,
 #'         lhs = matrix(c(1, -1, 0, 0,
 #'                        0, 1, -1, 0,
@@ -107,4 +108,117 @@ el_test <- function(formula, data, lhs, rhs = NULL, maxit = 1e04, abstol = 1e-8)
     warning("convergence failed\n")
   }
   out
+}
+
+el_test2 <- function(object, rhs, control = list())
+{
+  if (!inherits(object, "el_test"))
+    stop("invalid 'object' supplied")
+  if (is.null(object$data.matrix))
+    stop("'object' has no 'data.matrix'; fit the model with 'keep.data' = TRUE")
+  p <- object$df
+  if (missing(rhs)) {
+    rhs <- rep(0, p)
+  } else {
+    if (!is.numeric(rhs) || any(!is.finite(rhs)))
+      stop("'rhs' must be a finite numeric vector")
+    if (length(rhs) != p)
+      stop("'rhs' and 'object' have incompatible dimensions")
+  }
+  # if (missing(lhs))
+  #   lhs <- diag(nrow = p)
+
+  ctrl <- object$optim$control
+  ctrl[names(control)] <- control
+  optcfg <- check_control(ctrl)
+  out <- EL_test(object$optim$type, rhs, object$data.matrix,
+                 optcfg$maxit, optcfg$abstol, optcfg$threshold)
+  class(out) <- class(object)
+  out
+}
+
+#' @importFrom stats complete.cases qchisq
+confint.el_test <- function(object, parm, level = 0.95, ...) {
+  cf <- coef(object)
+  pnames <- if (is.null(names(cf))) seq(length(cf)) else names(cf)
+  idx <- seq(length(cf))
+  if (!missing(parm)) {
+    if (is.numeric(parm)) {
+      idx <- parm
+      pnames <- pnames[parm]
+    } else if (is.character(parm)) {
+      idx <- match(parm, pnames)
+      pnames <- pnames[idx]
+    } else {
+      stop("invalid 'parm' specified")
+    }
+  }
+  stopifnot(complete.cases(pnames))
+  if (!missing(level) &&
+      (length(level) != 1L || !is.finite(level) ||
+       level < 0 || level > 1))
+    stop("'conf.level' must be a single number between 0 and 1")
+  if (level == 0) {
+    ci <- matrix(rep(cf, 2L), ncol = 2L)
+  } else if (level == 1) {
+    p <- length(pnames)
+    ci <- matrix(c(rep(-Inf, p), rep(Inf, p)), ncol = 2L)
+  } else {
+    cutoff <- qchisq(level, 1L)
+    optcfg <- object$optim$control
+    ci <- EL_confint2(object$data, object$optim$type, cf, cutoff,
+                     optcfg$maxit, optcfg$abstol, optcfg$threshold)
+  }
+  a <- (1 - level)/2
+  a <- c(a, 1 - a)
+  pct <- paste(round(100 * a, 1L), "%")
+  dimnames(ci) <- list(pnames, pct)
+  ci
+}
+
+#' @export
+print.el_test <- function(x, digits = getOption("digits"), ...) {
+  cat("\n")
+  cat("Empirical Likelihood Test:", x$optim$type, "\n")
+  cat("\n")
+  out <- character()
+  if (!is.null(x$statistic))
+    out <- c(out, paste("Chisq", names(x$statistic), "=",
+                        format(x$statistic, digits = max(1L, digits - 2L))))
+  if (!is.null(x$df))
+    out <- c(out, paste("df", "=", x$df))
+  if (!is.null(x$p.value)) {
+    fp <- format.pval(x$p.value, digits = max(1L, digits - 3L))
+    out <- c(out, paste("p-value", if (startsWith(fp, "<")) fp else paste("=",
+                                                                          fp)))
+  }
+  cat(strwrap(paste(out, collapse = ", ")), sep = "\n")
+  if (!is.null(x$alternative)) {
+    cat("alternative hypothesis: ")
+    if (!is.null(x$null.value)) {
+      if (length(x$null.value) == 1L) {
+        alt.char <- switch(x$alternative, two.sided = "not equal to",
+                           less = "less than", greater = "greater than")
+        cat("true ", names(x$null.value), " is ", alt.char,
+            " ", x$null.value, "\n", sep = "")
+      }
+      else {
+        cat(x$alternative, "\nnull values:\n", sep = "")
+        print(x$null.value, digits = digits, ...)
+      }
+    }
+    else cat(x$alternative, "\n", sep = "")
+  }
+  if (!is.null(x$coefficients)) {
+    cat("maximum EL estimates:\n")
+    print(x$coefficients, digits = digits, ...)
+  }
+  cat("\n")
+  invisible(x)
+}
+
+#' @importFrom stats weights
+weights.el_test <- function(object, ...) {
+  n <- NROW(object$data)
+  c((n + n * as.matrix(object$data) %*% as.matrix(object$optim$lambda))^-1)
 }
