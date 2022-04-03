@@ -1,35 +1,47 @@
 #' Empirical likelihood pairwise comparisons
 #'
-#' Tests all pairwise comparisons or comparisons with control for general block designs. Two single step asymptotic \eqn{k}-FWER (generalized family-wise error rate) controlling procedures are available: asymptotic Monte Carlo (AMC) and nonparametric bootstrap (NB).
+#' Tests all pairwise comparisons or comparisons with control for general block
+#'   designs. Two single step asymptotic \eqn{k}-FWER (generalized family-wise
+#'   error rate) controlling procedures are available: asymptotic Monte Carlo
+#'   (AMC) and nonparametric bootstrap (NB).
 #'
-#' @param formula A formula object. It must specify variables for response, treatment, and block as 'response ~ treatment | block'. Note that the use of vertical bar (|) separating treatment and block.
+#' @param formula A formula object. It must specify variables for response,
+#'   treatment, and block as 'response ~ treatment | block'. Note that the use
+#'   of vertical bar (|) separating treatment and block.
 #' @param data A data frame containing the variables in the formula.
-#' @param control Optional character specifying the treatment for comparisons with control.
+#' @param control Optional character specifying the treatment for comparisons
+#'   with control.
 #' @param k Single integer for \eqn{k} in \eqn{k}-FWER. Defaults to 1.
 #' @param alpha Level of the test. Defaults to 0.05.
-#' @param method Single character for the procedure to be used; either 'AMC' or 'NB' is supported. Defaults to 'AMC'.
-#' @param B Number of Monte Carlo samples for the AMC (number of bootstrap replicates for the NB).
-#' @param nthread Number of threads to be used with OpenMP. Only applied when the NB is chosen as the method. Defaults to 1.
+#' @param method Single character for the procedure to be used; either 'AMC'
+#'   or 'NB' is supported. Defaults to 'AMC'.
+#' @param B Number of Monte Carlo samples for the AMC (number of bootstrap
+#'   replicates for the NB).
+#' @param nthread Number of threads to be used with OpenMP. Only applied when
+#'   the NB is chosen as the method. Defaults to 1.
 #' @param progress If TRUE, will show progress status.
-#' @param maxit Maximum number of iterations for optimization. Defaults to 10000.
-#' @param abstol Absolute convergence tolerance for optimization. Defaults to 1e-08.
+#' @param maxit Maximum number of iterations for optimization.
+#'   Defaults to 10000.
+#' @param abstol Absolute convergence tolerance for optimization.
+#'   Defaults to 1e-08.
 #' @return A list with class \code{c("pairwise", "melt")}.
 #' @references Kim, E., MacEachern, S., and Peruggia, M., (2021),
 #' "Empirical Likelihood for the Analysis of Experimental Designs,"
 #' \href{https://arxiv.org/abs/2112.09206}{arxiv:2112.09206}.
 #' @examples
-#' ## all pairwise comparisons
+#' # all pairwise comparisons
 #' data("clothianidin")
-#' el_pairwise(clo ~ trt | blk, clothianidin, B = 10000)
+#' el_pairwise(clo ~ trt | blk, clothianidin, B = 1000)
 #'
-#' ## comparisons with control
-#' el_pairwise(clo ~ trt | blk, clothianidin, control = "Naked", method = "NB", B = 1000)
+#' # comparisons with control
+#' el_pairwise(clo ~ trt | blk, clothianidin, control = "Naked", method = "NB",
+#'             B = 500)
 #'
 #' @importFrom stats terms
 #' @export
 el_pairwise <- function(formula, data, control = NULL, k = 1, alpha = 0.05,
-                        method = c("AMC", "NB"), B, nthread = 1, progress = TRUE,
-                        maxit = 10000, abstol = 1e-08) {
+                        method = c("AMC", "NB"), B, nthread = 1,
+                        progress = TRUE, maxit = 10000, abstol = 1e-08) {
   ## check method
   method <- match.arg(method)
 
@@ -50,7 +62,7 @@ el_pairwise <- function(formula, data, control = NULL, k = 1, alpha = 0.05,
     # distinct variables for treatment and block
     f$variables[[3]][[2]] == f$variables[[3]][[3]])
   ) {
-    stop("invalied model formula. specify formula as 'response ~ treatment | block'.")
+    stop("specify formula as 'response ~ treatment | block'.")
   }
 
   ## pseudo formula for model.frame
@@ -126,3 +138,69 @@ el_pairwise <- function(formula, data, control = NULL, k = 1, alpha = 0.05,
   }
   out
 }
+
+#' @noRd
+#' @importFrom stats printCoefmat
+#' @export
+print.pairwise <- function(x, ...) {
+  stopifnot(inherits(x, "melt"))
+  cat("\nEmpirical Likelihood Multiple Hypothesis Testing\n\n")
+  # set row names
+  if (is.null(x$control)) {
+    cat("Test: all pairwise comparisons\n\n")
+    rname <- vector("character", length = 0)
+    for (i in 1L:(length(x$trt) - 1L)) {
+      for (j in (i + 1L):length(x$trt)) {
+        rname <- c(rname, paste(x$trt[i], "-", x$trt[j]))
+      }
+    }
+  } else {
+    cat("Test: comparisons with control\n\n")
+    diff <- setdiff(x$trt, x$control)
+    rname <- vector("character", length = length(diff))
+    for (i in seq_along(diff)) {
+      rname[i] <- paste(diff[i], "-", x$control)
+    }
+  }
+  out <- data.frame(row.names = rname, estimate  = x$estimate,
+                    statistic = x$statistic, lwr.ci = x$lower,
+                    upr.ci = x$upper,
+                    p.adj = round(x$p.adj, 4))
+  printCoefmat(out, digits = min(4L, getOption("digits")), cs.ind = c(1, 3, 4),
+               tst.ind = 2L, dig.tst = min(3L, getOption("digits")),
+               P.values = TRUE, has.Pvalue = TRUE, eps.Pvalue = 1e-03)
+  cat("\n")
+  cat(paste(c("k", "level", "method", "cutoff"),
+            c(x$k, x$level, x$method, round(x$cutoff, 4)),
+            collapse = ", ", sep = ": "))
+  cat("\n\n")
+}
+
+# elmulttest_rownames <- function(m, trt, test) {
+#   # if not pairwise comparison, return general hypotheses names
+#   if (is.null(test)) {
+#     return(paste0("H_", 1:m))
+#   }
+#
+#   # pairwise comparisons
+#   if (length(test) == 2) {
+#     # comparisons with control
+#     diff <- setdiff(trt, test[2])
+#     row_names <- vector("character", length = length(diff))
+#     for (i in 1:length(diff)) {
+#       row_names[i] <- paste(diff[i], "-", test[2])
+#     }
+#     return(row_names)
+#   } else {
+#     # all pairwise comparisons
+#     row_names <- vector("character", length = 0)
+#     for (i in 1:(length(trt) - 1)) {
+#       for (j in (i + 1):length(trt)) {
+#         row_names <- c(row_names, paste(trt[i], "-", trt[j]))
+#       }
+#     }
+#     row_names
+#   }
+# }
+
+

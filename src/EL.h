@@ -3,116 +3,173 @@
 
 #include "eigen_config.h"
 #include <RcppEigen.h>
-#include <cmath>
 #include "utils.h"
-
-struct minEL {
-  Eigen::VectorXd par;
-  Eigen::VectorXd lambda;
-  double nlogLR;
-  int iterations;
-  bool convergence;
-};
 
 class EL
 {
-private:
-  const int n;
 public:
-  Eigen::VectorXd lambda;
-  double nlogLR = 0;
-  int iterations = 1;
-  bool convergence = false;
+  // members
+  Eigen::VectorXd l;  // Lagrange multiplier
+  double nllr{0};     // negative log likelihood ratio
+  int iter{0};        // iterations performed in optimization
+  bool conv{false};   // convergence status
 
+  // constructors
+  // direct evaluation
   EL(const Eigen::Ref<const Eigen::MatrixXd>& g,
      const int maxit,
-     const double abstol,
-     const double threshold);
-
+     const double tol,
+     const double th);
+  // direct evaluation (weighted)
   EL(const Eigen::Ref<const Eigen::MatrixXd>& g,
      const Eigen::Ref<const Eigen::ArrayXd>& w,
      const int maxit,
-     const double abstol,
-     const double threshold);
-
-  // // log probability
-  // Eigen::ArrayXd log_prob(const Eigen::Ref<const Eigen::MatrixXd>& g,
-  //                         const Eigen::Ref<const Eigen::ArrayXd>& w) const;
-};
-
-class EL2
-{
-private:
-  const std::string type;
-  Eigen::VectorXd par;
-public:
-  Eigen::VectorXd lambda;
-  double nlogLR = 0;
-  int iterations = 1;
-  bool convergence = false;
-
+     const double tol,
+     const double th);
   // evaluation
-  EL2(const Eigen::Ref<const Eigen::VectorXd>& par0,
-      const Eigen::Ref<const Eigen::MatrixXd>& x,
-      const std::string method,
-      const int maxit,
-      const double abstol,
-      const double threshold);
-
+  EL(const std::string method,
+     const Eigen::Ref<const Eigen::VectorXd>& par0,
+     const Eigen::Ref<const Eigen::MatrixXd>& x,
+     const int maxit,
+     const double tol,
+     const double th);
   // evaluation (weighted)
-  EL2(const Eigen::Ref<const Eigen::VectorXd>& par0,
-      const Eigen::Ref<const Eigen::MatrixXd>& x,
-      const Eigen::Ref<const Eigen::ArrayXd>& w,
-      const std::string method,
-      const int maxit,
-      const double abstol,
-      const double threshold);
+  EL(const std::string method,
+     const Eigen::Ref<const Eigen::VectorXd>& par0,
+     const Eigen::Ref<const Eigen::MatrixXd>& x,
+     const Eigen::Ref<const Eigen::ArrayXd>& w,
+     const int maxit,
+     const double tol,
+     const double th);
 
-  // minimization
-  EL2(const Eigen::Ref<const Eigen::VectorXd>& par0,
-      const Eigen::Ref<const Eigen::MatrixXd>& x,
-      const std::string method,
-      const Eigen::Ref<const Eigen::MatrixXd>& lhs,
-      const Eigen::Ref<const Eigen::VectorXd>& rhs,
-      const int maxit,
-      const double abstol,
-      const double threshold);
+  // functions for constructors
+  void set_el(const Eigen::Ref<const Eigen::MatrixXd>& g);
+  void set_el(const Eigen::Ref<const Eigen::MatrixXd>& g,
+              const Eigen::Ref<const Eigen::ArrayXd>& w);
+  std::function<Eigen::MatrixXd(const Eigen::Ref<const Eigen::MatrixXd>&,
+                                const Eigen::Ref<const Eigen::VectorXd>&)>
+    set_g_fcn(const std::string method);
 
+  // methods
   // log probability
-  Eigen::ArrayXd log_prob(const Eigen::Ref<const Eigen::MatrixXd>& x,
-                          const Eigen::Ref<const Eigen::ArrayXd>& w);
+  Eigen::ArrayXd logp(const Eigen::Ref<const Eigen::MatrixXd>& x) const;
+  Eigen::ArrayXd logp(const Eigen::Ref<const Eigen::MatrixXd>& x,
+                      const Eigen::Ref<const Eigen::ArrayXd>& w) const;
+  Eigen::ArrayXd logp_g(const Eigen::Ref<const Eigen::MatrixXd>& g) const;
+  Eigen::ArrayXd logp_g(const Eigen::Ref<const Eigen::MatrixXd>& g,
+                        const Eigen::Ref<const Eigen::ArrayXd>& w) const;
+  double loglik() const;
+  double loglik(const Eigen::Ref<const Eigen::ArrayXd>& w) const;
 
-  // log weighted probability
-  Eigen::ArrayXd log_wprob(const Eigen::Ref<const Eigen::MatrixXd>& x,
-                           const Eigen::Ref<const Eigen::ArrayXd>& w);
+private:
+  // members
+  const Eigen::VectorXd par;  // parameter value
+  const int maxit;            // maximum number of iterations
+  const double tol;           // relative convergence tolerance
+  const double th;            // threshold value for -logLR
+  const int n;                // sample size
+  // estimating function
+  const std::function<Eigen::MatrixXd(
+      const Eigen::Ref<const Eigen::MatrixXd>&,
+      const Eigen::Ref<const Eigen::VectorXd>&)> g_fcn;
 };
+
+class MINEL
+{
+public:
+  // members
+  Eigen::VectorXd par;  // parameter value (solution of optimization problem)
+  Eigen::VectorXd l;    // Lagrange multiplier
+  double nllr{0};       // negative log likelihood ratio
+  int iter{0};          // iterations performed in optimization
+  bool conv{false};     // convergence status
+
+  // constructors
+  // minimization
+  MINEL(const std::string method,
+        const Eigen::Ref<const Eigen::VectorXd>& par0,
+        const Eigen::Ref<const Eigen::MatrixXd>& x,
+        const Eigen::Ref<const Eigen::MatrixXd>& lhs,
+        const Eigen::Ref<const Eigen::VectorXd>& rhs,
+        const int maxit,
+        const double tol,
+        const double th);
+  // minimization (weighted)
+  MINEL(const std::string method,
+        const Eigen::Ref<const Eigen::VectorXd>& par0,
+        const Eigen::Ref<const Eigen::MatrixXd>& x,
+        const Eigen::Ref<const Eigen::ArrayXd>& w,
+        const Eigen::Ref<const Eigen::MatrixXd>& lhs,
+        const Eigen::Ref<const Eigen::VectorXd>& rhs,
+        const int maxit,
+        const double tol,
+        const double th);
+
+  // functions for constructors
+  std::function<Eigen::MatrixXd(const Eigen::Ref<const Eigen::MatrixXd>&,
+                                const Eigen::Ref<const Eigen::VectorXd>&)>
+    set_g_fcn(const std::string method);
+  std::function<Eigen::MatrixXd(const Eigen::Ref<const Eigen::VectorXd>&,
+                                const Eigen::Ref<const Eigen::MatrixXd>&,
+                                const Eigen::Ref<const Eigen::MatrixXd>&,
+                                const Eigen::Ref<const Eigen::VectorXd>&)>
+    set_gr_fcn(const std::string method);
+  std::function<Eigen::MatrixXd(const Eigen::Ref<const Eigen::VectorXd>&,
+                                const Eigen::Ref<const Eigen::MatrixXd>&,
+                                const Eigen::Ref<const Eigen::MatrixXd>&,
+                                const Eigen::Ref<const Eigen::ArrayXd>&)>
+    set_wgr_fcn(const std::string method);
+
+  // methods
+  // log probability
+  Eigen::ArrayXd logp(const Eigen::Ref<const Eigen::MatrixXd>& x) const;
+  Eigen::ArrayXd logp(const Eigen::Ref<const Eigen::MatrixXd>& x,
+                      const Eigen::Ref<const Eigen::ArrayXd>& w) const;
+  double loglik() const;
+  double loglik(const Eigen::Ref<const Eigen::ArrayXd>& w) const;
+
+private:
+  // members
+  const int maxit;  // maximum number of iterations
+  const double tol; // relative convergence tolerance
+  const double th;  // threshold value for -logLR
+  const int n;      // sample size
+  // estimating function
+  const std::function<Eigen::MatrixXd(
+      const Eigen::Ref<const Eigen::MatrixXd>&,
+      const Eigen::Ref<const Eigen::VectorXd>&)> g_fcn;
+  // gradient function of negative log likelihood ratio function
+  const std::function<Eigen::MatrixXd(
+      const Eigen::Ref<const Eigen::VectorXd>&,
+      const Eigen::Ref<const Eigen::MatrixXd>&,
+      const Eigen::Ref<const Eigen::MatrixXd>&,
+      const Eigen::Ref<const Eigen::VectorXd>&)> gr_fcn;
+  const std::function<Eigen::MatrixXd(
+      const Eigen::Ref<const Eigen::VectorXd>&,
+      const Eigen::Ref<const Eigen::MatrixXd>&,
+      const Eigen::Ref<const Eigen::MatrixXd>&,
+      const Eigen::Ref<const Eigen::ArrayXd>&)> wgr_fcn;
+};
+
 
 class PSEUDO_LOG
 {
 public:
+  // members
   Eigen::ArrayXd dplog;
   Eigen::ArrayXd sqrt_neg_d2plog;
-  double plog_sum = 0;
+  double plog_sum{0};
 
-  // PSEUDO_LOG(const Eigen::Ref<const Eigen::VectorXd>& x);
+  // constructors
   PSEUDO_LOG(Eigen::VectorXd&& x);
-  PSEUDO_LOG(Eigen::VectorXd&& x, Eigen::ArrayXd&& w);
-  static Eigen::ArrayXd plog(Eigen::ArrayXd&& x);
+  PSEUDO_LOG(Eigen::VectorXd&& x, const Eigen::Ref<const Eigen::ArrayXd>& w);
+
+  // methods
+  static Eigen::ArrayXd plog(Eigen::VectorXd&& x);
+  static Eigen::ArrayXd plog(Eigen::VectorXd&& x,
+                             const Eigen::Ref<const Eigen::ArrayXd>& w);
   static double sum(Eigen::VectorXd&& x);
-  static double sum(Eigen::VectorXd&& x, Eigen::ArrayXd&& w);
-  static Eigen::ArrayXd dp(Eigen::VectorXd&& x);
+  static double sum(Eigen::VectorXd&& x,
+                    const Eigen::Ref<const Eigen::ArrayXd>& w);
 };
-
-double th_nlogLR(const int p, const Rcpp::Nullable<double> threshold);
-
-Eigen::MatrixXd g_mean(const Eigen::Ref<const Eigen::VectorXd>& par,
-                       const Eigen::Ref<const Eigen::MatrixXd>& x);
-
-Eigen::MatrixXd g_lm(const Eigen::Ref<const Eigen::VectorXd>& par,
-                     const Eigen::Ref<const Eigen::MatrixXd>& data);
-
-Eigen::VectorXd gr_nlogLR_lm(
-    const Eigen::Ref<const Eigen::VectorXd>& lambda,
-    const Eigen::Ref<const Eigen::MatrixXd>& g,
-    const Eigen::Ref<const Eigen::MatrixXd>& data);
 #endif

@@ -5,11 +5,15 @@
 #' @param par A numeric vector of parameter values to be tested.
 #' @param x A numeric matrix, or an object that can be coerced to a numeric
 #'   matrix. Each row corresponds to an observation.
+#' @param weights An optional numeric vector of weights to be used in the
+#'   fitting process. If not provided, identical weights are applied. Otherwise,
+#'   weighted empirical likelihood is computed.
 #' @param control A list of control parameters. See ‘Details’ in
 #'   \code{\link{el_eval}}.
-#' @inheritParams el_eval
+#' @param model A logical. If \code{TRUE} the model matrix used for fitting is
+#'   returned.
 #' @return A list with class \code{"el_test"} as described in
-#'   \code{\link{el_eval}}.
+#'   \code{\link{lht}}.
 #' @references Glenn, N.L., and Yichuan Zhao. 2007.
 #'   “Weighted Empirical Likelihood Estimates and Their Robustness Properties.”
 #'   Computational Statistics & Data Analysis 51 (10): 5130–41.
@@ -17,52 +21,46 @@
 #' @references Owen, Art. 1990. “Empirical Likelihood Ratio Confidence Regions.”
 #'   The Annals of Statistics 18 (1).
 #'   \doi{10.1214/aos/1176347494}.
-#' @seealso \link{el_eval}
+#' @seealso \link{el_eval}, \link{lht}
 #' @examples
-#' ## scalar mean
+#' # scalar mean
 #' par <- 0
 #' x <- rnorm(100)
 #' el_mean(par, x)
 #'
-#' ## vector mean
+#' # vector mean
 #' par <- c(0, 0)
 #' x <- matrix(rnorm(100L), ncol = 2)
 #' el_mean(par, x)
 #'
-#' ## weighted EL
+#' # weighted EL
 #' par <- c(0, 0)
 #' x <- matrix(rnorm(100), ncol = 2)
-#' el_mean(par, x, weights = rep(c(1,2), each = 25))
+#' w <- rep(c(1, 2), each = 25)
+#' el_mean(par, x, w)
 #' @export
-el_mean <- function(par, x, weights = NULL, control = list())
-{
-  if (!is.numeric(par) || any(!is.finite(par)))
-    stop("'par' must be a finite numeric vector")
+el_mean <- function(par, x, weights, control = list(), model = TRUE) {
   mm <- as.matrix(x)
-  if (!is.numeric(mm) || any(!is.finite(mm)))
+  if (!is.numeric(mm) || !all(is.finite(mm)))
     stop("'x' must be a finite numeric matrix")
-  if (NROW(mm) < 2L)
+  if (nrow(mm) < 2L)
     stop("not enough 'x' observations")
-  if (length(par) != NCOL(mm))
+  if (!is.numeric(par) || !all(is.finite(par)))
+    stop("'par' must be a finite numeric vector")
+  if (length(par) != ncol(mm))
     stop("'par' and 'x' have incompatible dimensions")
 
   # check control
   optcfg <- check_control(control)
-  if (is.null(weights)) {
-    out <- EL_mean(par, mm, optcfg$maxit, optcfg$abstol, optcfg$threshold)
+  if (missing(weights)) {
+    out <- mean_(par, mm, optcfg$maxit, optcfg$tol, optcfg$th)
   } else {
-    if (!is.numeric(weights))
-      stop("'weights' must be a numeric vector")
-    w <- as.numeric(weights)
-    if (any(!is.finite(w)))
-      stop("'weights' must be a finite numeric vector")
-    if (any(w < 0))
-      stop("negative 'weights' are not allowed")
-    if (length(w) != NROW(mm))
-      stop("'g' and 'weights' have incompatible dimensions")
-    w <- (NROW(mm) / sum(w)) * w
-    out <- WEL_mean(par, mm, w, optcfg$maxit, optcfg$abstol, optcfg$threshold)
+    w <- check_weights(weights, nrow(mm))
+    out <- mean_w_(par, mm, w, optcfg$maxit, optcfg$tol, optcfg$th)
+    out$weights <- w
   }
-  out$data.matrix <- mm
+  if (model)
+    out$data.matrix <- mm
+  class(out) <- "el_test"
   out
 }

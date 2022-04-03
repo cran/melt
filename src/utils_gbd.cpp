@@ -1,5 +1,154 @@
 #include "utils_gbd.h"
 
+EL_deprecated::EL_deprecated(const Eigen::Ref<const Eigen::MatrixXd>& g,
+                             const double threshold,
+                             const int maxit,
+                             const double abstol) {
+  // maximization
+  lambda = (g.transpose() * g).ldlt().solve(g.colwise().sum());
+  iterations = 0;
+  convergence = false;
+  while (!convergence && iterations != maxit) {
+    // plog class
+    PSEUDO_LOG_deprecated log_tmp(Eigen::VectorXd::Ones(g.rows()) + g * lambda);
+    // J matrix
+    const Eigen::MatrixXd J = g.array().colwise() * log_tmp.sqrt_neg_d2plog;
+    // prpose new lambda by NR method with least square
+    Eigen::VectorXd step =
+      (J.transpose() * J).ldlt().solve(
+          J.transpose() * (log_tmp.dplog / log_tmp.sqrt_neg_d2plog).matrix());
+    // update function value
+    nlogLR =
+      PSEUDO_LOG_deprecated::sum(Eigen::VectorXd::Ones(g.rows()) + g * (lambda + step));
+    // step halving to ensure validity
+    while (nlogLR < log_tmp.plog_sum) {
+      step /= 2;
+      nlogLR =
+        PSEUDO_LOG_deprecated::sum(Eigen::VectorXd::Ones(g.rows()) + g * (lambda + step));
+    }
+    // update lambda
+    lambda += step;
+
+    // check convex hull constraint(stop if larger than threshold)
+    if (nlogLR > threshold) {
+      break;
+    }
+
+    // convergence check
+    if (nlogLR - log_tmp.plog_sum < abstol) {
+      convergence = true;
+    } else {
+      ++iterations;
+    }
+  }
+}
+
+PSEUDO_LOG_deprecated::PSEUDO_LOG_deprecated(Eigen::VectorXd&& x) {
+  static const double n = static_cast<double>(x.size());
+  static const double a0 = 1.0 / n;
+  static const double a1 = -std::log(n) - 1.5;
+  static const double a2 = 2.0 * n;
+  static const double a3 = -0.5 * n * n;
+
+  dplog.resize(x.size());
+  sqrt_neg_d2plog.resize(x.size());
+  plog_sum = 0;
+
+  for (unsigned int i = 0; i < x.size(); ++i) {
+    if (x[i] < a0) {
+      dplog[i] = a2 + 2 * a3 * x[i];
+      sqrt_neg_d2plog[i] = a2 / 2;
+      plog_sum += a1 + a2 * x[i] + a3 * x[i] * x[i];
+    } else {
+      dplog[i] = 1.0 / x[i];
+      sqrt_neg_d2plog[i] = 1.0 / x[i];
+      plog_sum += std::log(x[i]);
+    }
+  }
+}
+
+double PSEUDO_LOG_deprecated::sum(Eigen::VectorXd&& x) {
+  static const double n = static_cast<double>(x.size());
+  static const double a0 = 1.0 / n;
+  static const double a1 = -std::log(n) - 1.5;
+  static const double a2 = 2.0 * n;
+  static const double a3 = -0.5 * n * n;
+  double out = 0;
+  for (unsigned int i = 0; i < x.size(); ++i) {
+    out += x[i] < a0 ? a1 + a2 * x[i] + a3 * x[i] * x[i] : std::log(x[i]);
+  }
+  return out;
+}
+
+Eigen::ArrayXd PSEUDO_LOG_deprecated::dp(Eigen::VectorXd&& x) {
+  static const double n = static_cast<double>(x.size());
+  static const double a0 = 1.0 / n;
+  static const double a1 = 2.0 * n;
+  static const double a2 = -1.0 * n * n;
+  // Eigen::ArrayXd out(n);
+  for (unsigned int i = 0; i < x.size(); ++i) {
+    if (x[i] < a0) {
+      x[i] = a1 + a2 * x[i];
+    } else {
+      x[i] = 1.0 / x[i];
+    }
+  }
+  return x;
+}
+
+// std::vector<std::array<int, 2>> comparison_pairs(
+//     const int p, const int control) {
+//   // initialize a vector of vectors
+//   std::vector<std::array<int, 2>> pairs;
+//   if (control == 0){
+//     // the size of vector is p choose 2
+//     pairs.reserve(p * (p - 1) / 2);
+//     // fill in each elements(pairs)
+//     for (int i = 0; i < p - 1; ++i) {
+//       for (int j = i + 1; j < p; ++j) {
+//         pairs.emplace_back(std::array<int, 2>{i, j});
+//
+//       }
+//     }
+//   } else {
+//     // the size of vector is p - 1
+//     pairs.reserve(p - 1);
+//     // fill in each elements(pairs)
+//     for (int i = 0; i < p; ++i) {
+//       if (i == control - 1) {
+//         continue;
+//       }
+//       pairs.emplace_back(std::array<int, 2>{i, control - 1});
+//     }
+//   }
+//   return pairs;
+// }
+
+Eigen::VectorXd linear_projection(
+    const Eigen::Ref<const Eigen::VectorXd>& theta,
+    const Eigen::Ref<const Eigen::MatrixXd>& lhs,
+    const Eigen::Ref<const Eigen::VectorXd>& rhs) {
+  return theta -
+    lhs.transpose() * (lhs * lhs.transpose()).inverse() * (lhs * theta - rhs);
+}
+void linear_projection_void(
+    Eigen::Ref<Eigen::VectorXd> theta,
+    const Eigen::Ref<const Eigen::MatrixXd>& lhs,
+    const Eigen::Ref<const Eigen::VectorXd>& rhs) {
+  theta -=
+    lhs.transpose() * (lhs * lhs.transpose()).inverse() * (lhs * theta - rhs);
+}
+
+Eigen::MatrixXd bootstrap_sample(
+    const Eigen::Ref<const Eigen::MatrixXd>& x,
+    const Eigen::Ref<const Eigen::ArrayXi>& index) {
+  Eigen::MatrixXd out(x.rows(), x.cols());
+  for (int i = 0; i < x.rows(); ++i) {
+    out.row(i) = x.row(index(i));
+  }
+  return out;
+}
+
 Eigen::MatrixXd g_gbd(const Eigen::Ref<const Eigen::VectorXd>& theta,
                       const Eigen::Ref<const Eigen::MatrixXd>& x,
                       const Eigen::Ref<const Eigen::MatrixXd>& c) {
@@ -25,7 +174,7 @@ Eigen::VectorXd lambda2theta_gbd(
     const Eigen::Ref<const Eigen::MatrixXd>& c,
     const double gamma) {
   // Eigen::VectorXd dplog_vec =
-  //   PSEUDO_LOG::dp(Eigen::VectorXd::Ones(g.rows()) + g * lambda);
+  //   PSEUDO_LOG_deprecated::dp(Eigen::VectorXd::Ones(g.rows()) + g * lambda);
   // // gradient
   // Eigen::VectorXd gradient =
   //   -(dplog_vec.asDiagonal() * c).array().colwise().sum().transpose() * lambda.array();
@@ -33,9 +182,9 @@ Eigen::VectorXd lambda2theta_gbd(
   // return theta - gamma * gradient;
 
   Eigen::VectorXd ngradient =
-    (PSEUDO_LOG::dp(Eigen::VectorXd::Ones(g.rows()) + g * lambda).matrix().asDiagonal() * c)
-  .array().colwise().sum().transpose() * lambda.array();
-  return theta + gamma * ngradient;
+    (PSEUDO_LOG_deprecated::dp(Eigen::VectorXd::Ones(g.rows()) + g * lambda).matrix().asDiagonal() * c)
+                                           .array().colwise().sum().transpose() * lambda.array();
+    return theta + gamma * ngradient;
 }
 
 void lambda2theta_void(
@@ -45,15 +194,15 @@ void lambda2theta_void(
     const Eigen::Ref<const Eigen::MatrixXd>& c,
     const double gamma) {
   // Eigen::VectorXd ngradient =
-  //   (PSEUDO_LOG::dp(
+  //   (PSEUDO_LOG_deprecated::dp(
   //       Eigen::VectorXd::Ones(g.rows()) + g * lambda).matrix().asDiagonal() * c)
   //                                 .array().colwise().sum().transpose() * lambda.array();
   theta +=
-    gamma * ((PSEUDO_LOG::dp(
-    Eigen::VectorXd::Ones(
-      g.rows()) + g * lambda).matrix().asDiagonal() * c)
-               .array().colwise().sum().transpose() *
-      lambda.array()).matrix();
+    gamma * ((PSEUDO_LOG_deprecated::dp(
+        Eigen::VectorXd::Ones(
+          g.rows()) + g * lambda).matrix().asDiagonal() * c)
+           .array().colwise().sum().transpose() *
+          lambda.array()).matrix();
 }
 
 Eigen::VectorXd approx_lambda_gbd(
@@ -103,9 +252,9 @@ minEL test_gbd_EL(const Eigen::Ref<const Eigen::VectorXd>& theta0,
                   const Eigen::Ref<const Eigen::MatrixXd>& c,
                   const Eigen::Ref<const Eigen::MatrixXd>& lhs,
                   const Eigen::Ref<const Eigen::VectorXd>& rhs,
+                  const double threshold,
                   const int maxit,
-                  const double abstol,
-                  const double threshold) {
+                  const double abstol) {
   /// initialization ///
   // Constraint imposed on the initial value by projection.
   // The initial value is given as treatment means.
@@ -114,9 +263,9 @@ minEL test_gbd_EL(const Eigen::Ref<const Eigen::VectorXd>& theta0,
   // estimating function
   Eigen::MatrixXd g = g_gbd(theta, x, c);
   // evaluation
-  Eigen::VectorXd lambda = EL(g, maxit, abstol, threshold).lambda;
+  Eigen::VectorXd lambda = EL_deprecated(g, threshold).lambda;
   // for current function value(-logLR)
-  double f1 = PSEUDO_LOG::sum(Eigen::VectorXd::Ones(g.rows()) + g * lambda);
+  double f1 = PSEUDO_LOG_deprecated::sum(Eigen::VectorXd::Ones(g.rows()) + g * lambda);
 
   /// minimization(projected gradient descent) ///
   double gamma = 1.0 / (c.colwise().sum().mean());    // step size
@@ -131,7 +280,7 @@ minEL test_gbd_EL(const Eigen::Ref<const Eigen::VectorXd>& theta0,
     // update g
     Eigen::MatrixXd g_tmp = g_gbd(theta_tmp, x, c);
     // update lambda
-    EL eval(g_tmp, maxit, abstol, threshold);
+    EL_deprecated eval(g_tmp, threshold);
     Eigen::VectorXd lambda_tmp = eval.lambda;
     if (!eval.convergence && iterations > 9) {
       // Rcpp::warning("Convex hull constraint not satisfied during optimization.");
@@ -140,7 +289,7 @@ minEL test_gbd_EL(const Eigen::Ref<const Eigen::VectorXd>& theta0,
 
     // update function value
     double f0 = f1;
-    f1 = PSEUDO_LOG::sum(Eigen::VectorXd::Ones(g_tmp.rows()) + g_tmp * lambda_tmp);
+    f1 = PSEUDO_LOG_deprecated::sum(Eigen::VectorXd::Ones(g_tmp.rows()) + g_tmp * lambda_tmp);
     // step halving to ensure that the updated function value be
     // strictly less than the current function value
     while (f0 < f1) {
@@ -152,13 +301,13 @@ minEL test_gbd_EL(const Eigen::Ref<const Eigen::VectorXd>& theta0,
       linear_projection_void(theta_tmp, lhs, rhs);
       // propose new lambda
       g_tmp = g_gbd(theta_tmp, x, c);
-      lambda_tmp = EL(g_tmp, maxit, abstol, threshold).lambda;
+      lambda_tmp = EL_deprecated(g_tmp, threshold).lambda;
       if (gamma < abstol) {
         // Rcpp::warning("Convex hull constraint not satisfied during step halving.");
         return {theta, lambda, f0, iterations, convergence};
       }
       // propose new function value
-      f1 = PSEUDO_LOG::sum(Eigen::VectorXd::Ones(g_tmp.rows()) + g_tmp * lambda_tmp);
+      f1 = PSEUDO_LOG_deprecated::sum(Eigen::VectorXd::Ones(g_tmp.rows()) + g_tmp * lambda_tmp);
     }
 
     // update parameters
@@ -181,9 +330,9 @@ double test_nlogLR(const Eigen::Ref<const Eigen::VectorXd>& theta0,
                    const Eigen::Ref<const Eigen::MatrixXd>& c,
                    const Eigen::Ref<const Eigen::MatrixXd>& lhs,
                    const Eigen::Ref<const Eigen::VectorXd>& rhs,
+                   const double threshold,
                    const int maxit,
-                   const double abstol,
-                   const double threshold) {
+                   const double abstol) {
   /// initialization ///
   // Constraint imposed on the initial value by projection.
   // The initial value is given as treatment means.
@@ -192,9 +341,9 @@ double test_nlogLR(const Eigen::Ref<const Eigen::VectorXd>& theta0,
   // estimating function
   Eigen::MatrixXd g = g_gbd(theta, x, c);
   // evaluation
-  Eigen::VectorXd lambda = EL(g, maxit, abstol, threshold).lambda;
+  Eigen::VectorXd lambda = EL_deprecated(g, threshold).lambda;
   // for current function value(-logLR)
-  double f1 = PSEUDO_LOG::sum(Eigen::VectorXd::Ones(g.rows()) + g * lambda);
+  double f1 = PSEUDO_LOG_deprecated::sum(Eigen::VectorXd::Ones(g.rows()) + g * lambda);
 
   /// minimization(projected gradient descent) ///
   double gamma = 1.0 / (c.colwise().sum().mean());    // step size
@@ -209,7 +358,7 @@ double test_nlogLR(const Eigen::Ref<const Eigen::VectorXd>& theta0,
     // update g
     Eigen::MatrixXd g_tmp = g_gbd(theta_tmp, x, c);
     // update lambda
-    EL eval(g_tmp, maxit, abstol, threshold);
+    EL_deprecated eval(g_tmp, threshold);
     Eigen::VectorXd lambda_tmp = eval.lambda;
     if (!eval.convergence && iterations > 9) {
       return f1;
@@ -217,7 +366,7 @@ double test_nlogLR(const Eigen::Ref<const Eigen::VectorXd>& theta0,
 
     // update function value
     double f0 = f1;
-    f1 = PSEUDO_LOG::sum(Eigen::VectorXd::Ones(g_tmp.rows()) + g_tmp * lambda_tmp);
+    f1 = PSEUDO_LOG_deprecated::sum(Eigen::VectorXd::Ones(g_tmp.rows()) + g_tmp * lambda_tmp);
 
     // step halving to ensure that the updated function value be
     // strictly less than the current function value
@@ -230,12 +379,12 @@ double test_nlogLR(const Eigen::Ref<const Eigen::VectorXd>& theta0,
       linear_projection_void(theta_tmp, lhs, rhs);
       // propose new lambda
       g_tmp = g_gbd(theta_tmp, x, c);
-      lambda_tmp = EL(g_tmp, maxit, abstol, threshold).lambda;
+      lambda_tmp = EL_deprecated(g_tmp, threshold).lambda;
       if (gamma < abstol) {
         return f0;
       }
       // propose new function value
-      f1 = PSEUDO_LOG::sum(Eigen::VectorXd::Ones(g_tmp.rows()) + g_tmp * lambda_tmp);
+      f1 = PSEUDO_LOG_deprecated::sum(Eigen::VectorXd::Ones(g_tmp.rows()) + g_tmp * lambda_tmp);
     }
 
     // update parameters
@@ -257,9 +406,9 @@ double test_nlogLR(const Eigen::Ref<const Eigen::MatrixXd>& x,
                    const Eigen::Ref<const Eigen::MatrixXd>& c,
                    const Eigen::Ref<const Eigen::MatrixXd>& lhs,
                    const Eigen::Ref<const Eigen::VectorXd>& rhs,
+                   const double threshold,
                    const int maxit,
-                   const double abstol,
-                   const double threshold) {
+                   const double abstol) {
   /// initialization ///
   // Constraint imposed on the initial value by projection.
   // The initial value is given as treatment means.
@@ -269,9 +418,9 @@ double test_nlogLR(const Eigen::Ref<const Eigen::MatrixXd>& x,
   // estimating function
   Eigen::MatrixXd g = g_gbd(theta, x, c);
   // evaluation
-  Eigen::VectorXd lambda = EL(g, maxit, abstol, threshold).lambda;
+  Eigen::VectorXd lambda = EL_deprecated(g, threshold).lambda;
   // for current function value(-logLR)
-  double f1 = PSEUDO_LOG::sum(Eigen::VectorXd::Ones(g.rows()) + g * lambda);
+  double f1 = PSEUDO_LOG_deprecated::sum(Eigen::VectorXd::Ones(g.rows()) + g * lambda);
 
   /// minimization(projected gradient descent) ///
   double gamma = 1.0 / (c.colwise().sum().mean());    // step size
@@ -286,14 +435,14 @@ double test_nlogLR(const Eigen::Ref<const Eigen::MatrixXd>& x,
     // update g
     Eigen::MatrixXd g_tmp = g_gbd(theta_tmp, x, c);
     // update lambda
-    EL eval(g_tmp, maxit, abstol, threshold);
+    EL_deprecated eval(g_tmp, threshold);
     Eigen::VectorXd lambda_tmp = eval.lambda;
     if (!eval.convergence && iterations > 9) {
       return f1;
     }
     // update function value
     double f0 = f1;
-    f1 = PSEUDO_LOG::sum(Eigen::VectorXd::Ones(g_tmp.rows()) + g_tmp * lambda_tmp);
+    f1 = PSEUDO_LOG_deprecated::sum(Eigen::VectorXd::Ones(g_tmp.rows()) + g_tmp * lambda_tmp);
     // step halving to ensure that the updated function value be
     // strictly less than the current function value
     while (f0 < f1) {
@@ -305,12 +454,12 @@ double test_nlogLR(const Eigen::Ref<const Eigen::MatrixXd>& x,
       linear_projection_void(theta_tmp, lhs, rhs);
       // propose new lambda
       g_tmp = g_gbd(theta_tmp, x, c);
-      lambda_tmp = EL(g_tmp, maxit, abstol, threshold).lambda;
+      lambda_tmp = EL_deprecated(g_tmp, threshold).lambda;
       if (gamma < abstol) {
         return f0;
       }
       // propose new function value
-      f1 = PSEUDO_LOG::sum(Eigen::VectorXd::Ones(g_tmp.rows()) + g_tmp * lambda_tmp);
+      f1 = PSEUDO_LOG_deprecated::sum(Eigen::VectorXd::Ones(g_tmp.rows()) + g_tmp * lambda_tmp);
     }
 
     // update parameters
@@ -412,7 +561,7 @@ double test_nlogLR(const Eigen::Ref<const Eigen::MatrixXd>& x,
 //   EL eval = getEL(g);
 //   Eigen::VectorXd lambda = eval.lambda;
 //   // for current function value(-logLR)
-//   double f0 = PSEUDO_LOG::sum(Eigen::VectorXd::Ones(g.rows()) + g * lambda);
+//   double f0 = PSEUDO_LOG_deprecated::sum(Eigen::VectorXd::Ones(g.rows()) + g * lambda);
 //   // for updated function value
 //   double f1 = f0;
 //
@@ -446,7 +595,7 @@ double test_nlogLR(const Eigen::Ref<const Eigen::MatrixXd>& x,
 //
 //     // update function value
 //     f0 = f1;
-//     f1 = PSEUDO_LOG::sum(Eigen::VectorXd::Ones(g_tmp.rows()) + g_tmp * lambda_tmp);
+//     f1 = PSEUDO_LOG_deprecated::sum(Eigen::VectorXd::Ones(g_tmp.rows()) + g_tmp * lambda_tmp);
 //
 //     // step halving to ensure that the updated function value be
 //     // strictly less than the current function value
@@ -472,7 +621,7 @@ double test_nlogLR(const Eigen::Ref<const Eigen::MatrixXd>& x,
 //         break;
 //       }
 //       // propose new function value
-//       f1 = PSEUDO_LOG::sum(Eigen::VectorXd::Ones(g_tmp.rows()) + g_tmp * lambda_tmp);
+//       f1 = PSEUDO_LOG_deprecated::sum(Eigen::VectorXd::Ones(g_tmp.rows()) + g_tmp * lambda_tmp);
 //     }
 //
 //     // update parameters

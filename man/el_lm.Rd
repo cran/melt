@@ -2,25 +2,18 @@
 % Please edit documentation in R/el_lm.R
 \name{el_lm}
 \alias{el_lm}
-\title{Fit a linear model with empirical likelihood}
+\title{Fits a linear model with empirical likelihood}
 \usage{
-el_lm(
-  formula,
-  data,
-  weights = NULL,
-  na.action,
-  control = list(),
-  keep.data = TRUE
-)
+el_lm(formula, data, weights, na.action, control = list(), model = TRUE)
 }
 \arguments{
 \item{formula}{A formula object.}
 
 \item{data}{A data frame containing the variables in the formula.}
 
-\item{weights}{An optional numeric vector of weights.
-Defaults to \code{NULL}, corresponding to identical weights.
-If non \code{NULL}, weighted empirical likelihood is computed.}
+\item{weights}{An optional numeric vector of weights to be used in the
+fitting process. If not provided, identical weights are applied. Otherwise,
+weighted empirical likelihood is computed.}
 
 \item{na.action}{A function which indicates what should happen when the data
 contain \code{NA}s.}
@@ -28,17 +21,17 @@ contain \code{NA}s.}
 \item{control}{A list of control parameters. See ‘Details’ in
 \code{\link{el_eval}}.}
 
-\item{keep.data}{A logical. If \code{TRUE} the data matrix used in fitting is
+\item{model}{A logical. If \code{TRUE} the model matrix used for fitting is
 returned.}
 }
 \value{
 A list with class \code{c("el_lm", "el_test")}.
 }
 \description{
-Fit a linear model with empirical likelihood.
+Fits a linear model with empirical likelihood.
 }
 \examples{
-fit <- el_lm(formula = mpg ~ wt, data = mtcars)
+fit <- el_lm(mpg ~ wt, mtcars)
 summary(fit)
 }
 \references{
@@ -47,5 +40,5 @@ Owen, Art. 1991. “Empirical Likelihood for Linear Models.”
   \doi{10.1214/aos/1176348368}.
 }
 \seealso{
-\link{el_aov}, \link{el_eval}
+\link{el_eval}, \link{lht}
 }

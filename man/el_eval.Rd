@@ -4,16 +4,16 @@
 \alias{el_eval}
 \title{Empirical likelihood with general estimating functions}
 \usage{
-el_eval(g, weights = NULL, control = list())
+el_eval(g, weights, control = list())
 }
 \arguments{
 \item{g}{A numeric matrix, or an object that can be coerced to a numeric
 matrix. Each row corresponds to an observation of an estimating
 function.}
 
-\item{weights}{An optional numeric vector of weights.
-Defaults to \code{NULL}, corresponding to identical weights.
-If non \code{NULL}, weighted empirical likelihood is computed.}
+\item{weights}{An optional numeric vector of weights to be used in the
+fitting process. If not provided, identical weights are applied. Otherwise,
+weighted empirical likelihood is computed.}
 
 \item{control}{A list of control parameters. See ‘Details’.}
 }
@@ -23,41 +23,68 @@ A list with the following components:
   \item{optim}{A list with the following optimization results:
     \describe{
       \item{lambda}{The Lagrange multiplier of dual problem.}
-      \item{weights}{If non \code{NULL} \code{weights} is supplied, the
-      rescaled weights are returned.}
       \item{logLR}{The (weighted) log empirical likelihood ratio value.}
       \item{iterations}{The number of iterations performed.}
-      \item{convergence}{A logical vector. \code{TRUE} indicates the
+      \item{convergence}{A logical vector. \code{TRUE} indicates
       convergence of the algorithm.}
     }
   }
+  \item{npar}{The number of parameters.}
+  \item{log.prob}{The log probabilities.}
+  \item{loglik}{The log likelihood value.}
   \item{statistic}{The chi-square statistic.}
   \item{df}{The degrees of freedom of the statistic.}
   \item{p.value}{The \eqn{p}-value of the statistic.}
+  \item{weights}{If non-\code{NULL} \code{weights} is supplied, the
+  rescaled weights are returned.}
 }
 }
 \description{
 Computes empirical likelihood with general estimating functions.
 }
 \details{
-For a \eqn{p}-dimensional parameter \eqn{\theta_0} and an estimating
-  function \eqn{g}, consider the following moment condition:
-  \deqn{E{g(X_i, \theta_0)} = 0, i = 1, \dots, n.}
-  Given a value of \eqn{\theta}, \code{el_eval} computes the empirical
-  likelihood with a \eqn{n} by \eqn{p} numeric matrix argument \code{g},
-  whose rows consist of all \eqn{g(X_i, \theta)}. If \code{weights} is non
-  \code{NULL}, the weights are rescaled to add up to \eqn{n}. The
-  \code{control} argument is a list that can supply any of the following
-  components:
-\describe{
-  \item{maxit}{The maximum number of iterations for optimization. Defaults to
-  \code{100}.}
-  \item{abstol}{The absolute convergence tolerance for log likelihood ratio
-  value. Defaults to \code{1e-06}.}
-  \item{threshold}{The threshold for log likelihood ratio value. The
-  computation stops if the value exceeds the threshold. Defaults to
-  \code{NULL} and sets the threshold to \eqn{20p}.}
+Let \eqn{X_i \in {\rm{I\!R}}^p} be i.i.d. random variables for
+  \eqn{i = 1, \dots, n}. Assume that there exists an unique \eqn{\theta_0 \in
+  {\rm{I\!R}}^p} that solves \eqn{\textnormal{E}[g(X_i, \theta)] = 0}, where
+  the estimating function \eqn{g(X_i, \theta)} takes values in
+  \eqn{{\rm{I\!R}}^p}. Given a value of \eqn{\theta}, the empirical
+  likelihood ratio is obtained by
+  \deqn{\mathcal{R}(\theta) =
+  \max_{p_i}\left\{\prod_{i = 1}^n np_i :
+  \sum_{i = 1}^n p_i g(X_i, \theta) = 0, p_i \geq 0, \sum_{i = 1}^n p_i = 1
+  \right\}.}
+  The Lagrange multiplier \eqn{\lambda \equiv \lambda(\theta)} of the dual
+  problem leads to
+  \deqn{p_i = \frac{1}{n}\frac{1}{1 + \lambda^\top g(X_i, \theta)},}
+  where \eqn{\lambda} solves
+  \deqn{\frac{1}{n}\sum_{i = 1}^n \frac{g(X_i, \theta)}
+  {1 + \lambda^\top g(X_i, \theta)} = 0.}
+  Then the log empirical likelihood ratio is given by
+  \deqn{\log\mathcal{R}(\theta) = -\sum_{i = 1}^n
+  \log(1 + \lambda^\top g(X_i, \theta)).}
+  \code{el_eval} performs the optimization via Newton’s algorithm to compute
+  \eqn{\lambda} with a \eqn{n} by \eqn{p} numeric matrix argument \code{g},
+  whose \eqn{i}th is \eqn{g(X_i, \theta)}. If \code{weights} is non
+  \code{NULL}, the weights are rescaled to add up to \eqn{n}. \code{control}
+  is a list that can supply any of the following components:
+  \describe{
+  \item{maxit}{The maximum number of iterations for the optimization.
+  Defaults to \code{100}.}
+  \item{tol}{The relative convergence tolerance, denoted by \eqn{\epsilon}.
+  The iteration stops when
+  \deqn{\|\lambda^{(k)} - \lambda^{(k - 1)}\| \leq
+  \epsilon\|\lambda^{(k - 1)}\| + \epsilon^2.} Defaults to \code{1e-06}.}
+  \item{th}{The threshold for the negative log empirical likelihood
+  ratio value. The iteration stops if the value exceeds the threshold.
+  Defaults to \code{NULL} and sets the threshold to \eqn{200p}.}
 }
+}
+\examples{
+# test for variance known mean
+x <- rnorm(100)
+sigma <- 1
+g <- x^2 - sigma^2
+el_eval(g)
 }
 \references{
 Glenn, N.L., and Yichuan Zhao. 2007.

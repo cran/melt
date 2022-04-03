@@ -3,19 +3,53 @@
 
 #include <RcppEigen.h>
 
-std::vector<std::array<int, 2>> comparison_pairs(
-        const int p, const int control);
+double th_nloglr(const int p, const Rcpp::Nullable<double> th);
 
-Eigen::VectorXd linear_projection(
-    const Eigen::Ref<const Eigen::VectorXd>& theta,
-    const Eigen::Ref<const Eigen::MatrixXd>& lhs,
-    const Eigen::Ref<const Eigen::VectorXd>& rhs);
+Eigen::MatrixXd g_mean(const Eigen::Ref<const Eigen::MatrixXd>& x,
+                       const Eigen::Ref<const Eigen::VectorXd>& par);
 
-void linear_projection_void(
-    Eigen::Ref<Eigen::VectorXd> theta,
-    const Eigen::Ref<const Eigen::MatrixXd>& lhs,
-    const Eigen::Ref<const Eigen::VectorXd>& rhs);
+Eigen::MatrixXd g_lm(const Eigen::Ref<const Eigen::MatrixXd>& x,
+                     const Eigen::Ref<const Eigen::VectorXd>& par);
 
-Eigen::MatrixXd bootstrap_sample(const Eigen::Ref<const Eigen::MatrixXd>& x,
-                                 const Eigen::Ref<const Eigen::ArrayXi>& index);
+Eigen::VectorXd gr_nloglr_mean(
+    const Eigen::Ref<const Eigen::VectorXd>& l,
+    const Eigen::Ref<const Eigen::MatrixXd>& g,
+    const Eigen::Ref<const Eigen::MatrixXd>& data,
+    const Eigen::Ref<const Eigen::VectorXd>& par);
+
+Eigen::VectorXd wgr_nloglr_mean(
+        const Eigen::Ref<const Eigen::VectorXd>& l,
+        const Eigen::Ref<const Eigen::MatrixXd>& g,
+        const Eigen::Ref<const Eigen::MatrixXd>& data,
+        const Eigen::Ref<const Eigen::ArrayXd>& w);
+
+Eigen::VectorXd gr_nloglr_lm(
+        const Eigen::Ref<const Eigen::VectorXd>& l,
+        const Eigen::Ref<const Eigen::MatrixXd>& g,
+        const Eigen::Ref<const Eigen::MatrixXd>& data,
+        const Eigen::Ref<const Eigen::VectorXd>& par);
+
+Eigen::VectorXd wgr_nloglr_lm(
+        const Eigen::Ref<const Eigen::VectorXd>& l,
+        const Eigen::Ref<const Eigen::MatrixXd>& g,
+        const Eigen::Ref<const Eigen::MatrixXd>& data,
+        const Eigen::Ref<const Eigen::ArrayXd>& w);
+
+
+
+
+
+
+
+
+Eigen::ArrayXd logit_linkinv(const Eigen::Ref<const Eigen::VectorXd>& x);
+
+Eigen::MatrixXd g_logit(const Eigen::Ref<const Eigen::MatrixXd>& data,
+                        const Eigen::Ref<const Eigen::VectorXd>& par);
+
+Eigen::VectorXd gr_nloglr_logit(
+        const Eigen::Ref<const Eigen::VectorXd>& l,
+        const Eigen::Ref<const Eigen::MatrixXd>& g,
+        const Eigen::Ref<const Eigen::MatrixXd>& data,
+        const Eigen::Ref<const Eigen::VectorXd>& par);
 #endif

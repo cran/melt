@@ -1,71 +1,142 @@
 #include "EL.h"
 
 // [[Rcpp::export]]
-Rcpp::List EL_lm(const Eigen::MatrixXd& data,
-                 const bool intercept,
-                 const int maxit,
-                 const double abstol,
-                 const Rcpp::Nullable<double> threshold) {
+Rcpp::List lm_(const Eigen::Map<Eigen::MatrixXd>& data,
+               const bool intercept,
+               const int maxit,
+               const double tol,
+               const Rcpp::Nullable<double> th) {
   // check design matrix
   const Eigen::VectorXd y = data.col(0);
   const Eigen::MatrixXd x = data.rightCols(data.cols() - 1);
   const int p = x.cols();
-  if (x.rows() <= p) {
-    Rcpp::stop("design matrix must have full column rank");
-  }
   const Eigen::FullPivLU<Eigen::MatrixXd> lu_decomp(x);
-  if (lu_decomp.rank() != p) {
+  if (x.rows() <= p || lu_decomp.rank() != p) {
     Rcpp::stop("design matrix must have full column rank");
   }
 
   // overall test
   const Eigen::VectorXd bhat = x.colPivHouseholderQr().solve(y);
-  const Eigen::VectorXd fitted_values = x * bhat;
-  const Eigen::VectorXd residuals = y - fitted_values;
+  const Eigen::VectorXd fit_val = x * bhat;
+  const Eigen::VectorXd resid = y - fit_val;
   Eigen::MatrixXd lhs(p - 1, p);
   lhs.col(0) = Eigen::MatrixXd::Zero(p - 1, 1);
   lhs.rightCols(p - 1) = Eigen::MatrixXd::Identity(p - 1, p - 1);
   const Eigen::VectorXd rhs = Eigen::VectorXd::Zero(p - 1);
-  const EL2 el =
+  const MINEL el =
     (intercept && p > 1)?
-    EL2(bhat, data, "lm", lhs, rhs, maxit, abstol,
-        th_nlogLR(p - 1, threshold)) :
-    EL2(Eigen::MatrixXd::Zero(1, p), data, "lm", maxit, abstol,
-        th_nlogLR(p, threshold));
+    MINEL("lm", bhat, data, lhs, rhs, maxit, tol, th_nloglr(p - 1, th)) :
+    MINEL("lm", bhat, data, Eigen::MatrixXd::Identity(p, p),
+          Eigen::VectorXd::Zero(p), maxit, tol,th_nloglr(p, th));
+  const int df = (intercept && p > 1)? p - 1 : p;
 
   // test each coefficient
-  std::vector<double> chisq_statistic(p);
-  std::vector<bool> convergence(p);
+  Rcpp::NumericVector chisq_val(p);
+  Rcpp::LogicalVector conv(p);
   Rcpp::Function pchisq("pchisq");
-  std::vector<double> pval(p);
+  Rcpp::NumericVector pval(p);
   for (int i = 0; i < p; ++i) {
     Rcpp::checkUserInterrupt();
     Eigen::MatrixXd lhs = Eigen::MatrixXd::Zero(1, p);
     lhs(i) = 1.0;
-    EL2 coef_test = EL2(bhat, data, "lm", lhs, Eigen::VectorXd::Zero(1),
-                        maxit, abstol, th_nlogLR(1, threshold));
-    chisq_statistic[i] = 2.0 * coef_test.nlogLR;
-    convergence[i] = coef_test.convergence;
-    pval[i] = Rcpp::as<double>(pchisq(chisq_statistic[i],
-                                      Rcpp::Named("df") = 1,
+    const MINEL par_test("lm", bhat, data, lhs, Eigen::VectorXd::Zero(1), maxit,
+                         tol, th_nloglr(1, th));
+    chisq_val[i] = 2.0 * par_test.nllr;
+    conv[i] = par_test.conv;
+    pval[i] = Rcpp::as<double>(pchisq(chisq_val[i], Rcpp::Named("df") = 1,
                                       Rcpp::Named("lower.tail") = false));
   }
 
   Rcpp::List result = Rcpp::List::create(
     Rcpp::Named("optim") = Rcpp::List::create(
-      Rcpp::Named("type") = "lm",
-      Rcpp::Named("lambda") = el.lambda,
-      Rcpp::Named("logLR") = -el.nlogLR,
-      Rcpp::Named("iterations") = el.iterations,
-      Rcpp::Named("convergence") = el.convergence,
+      Rcpp::Named("method") = "lm",
+      Rcpp::Named("lambda") = el.l,
+      Rcpp::Named("logLR") = -el.nllr,
+      Rcpp::Named("iterations") = el.iter,
+      Rcpp::Named("convergence") = el.conv,
       Rcpp::Named("par.tests") = Rcpp::List::create(
-        Rcpp::Named("statistic") = chisq_statistic,
+        Rcpp::Named("statistic") = chisq_val,
         Rcpp::Named("p.value") = pval,
-        Rcpp::Named("convergence") = convergence)),
-      Rcpp::Named("coefficients") = bhat,
-      Rcpp::Named("residuals") = residuals,
-      Rcpp::Named("df") = p,
-      Rcpp::Named("fitted.values") = fitted_values);
-  result.attr("class") = Rcpp::CharacterVector({"el_lm", "el_test"});
+        Rcpp::Named("convergence") = conv)),
+    Rcpp::Named("npar") = p,
+    Rcpp::Named("log.prob") = el.logp(data),
+    Rcpp::Named("loglik") = el.loglik(),
+    Rcpp::Named("coefficients") = bhat,
+    // Rcpp::Named("statistic") = ,
+    Rcpp::Named("df") = df,
+    Rcpp::Named("residuals") = resid,
+    Rcpp::Named("fitted.values") = fit_val);
+  return result;
+}
+
+// [[Rcpp::export]]
+Rcpp::List lm_w_(const Eigen::Map<Eigen::MatrixXd>& data,
+                 const Eigen::Map<Eigen::ArrayXd>& w,
+                 const bool intercept,
+                 const int maxit,
+                 const double tol,
+                 const Rcpp::Nullable<double> th) {
+  // check design matrix
+  const Eigen::VectorXd y = data.col(0);
+  const Eigen::MatrixXd x = data.rightCols(data.cols() - 1);
+  const int p = x.cols();
+  const Eigen::FullPivLU<Eigen::MatrixXd> lu_decomp(x);
+  if (x.rows() <= p || lu_decomp.rank() != p) {
+    Rcpp::stop("design matrix must have full column rank");
+  }
+
+  // overall test
+  const Eigen::MatrixXd wsqrt = Eigen::MatrixXd(w.sqrt().matrix().asDiagonal());
+  const Eigen::VectorXd bhat =
+    (wsqrt * x).colPivHouseholderQr().solve(wsqrt * y);
+  const Eigen::VectorXd fit_val = x * bhat;
+  const Eigen::VectorXd resid = y - fit_val;
+  Eigen::MatrixXd lhs(p - 1, p);
+  lhs.col(0) = Eigen::MatrixXd::Zero(p - 1, 1);
+  lhs.rightCols(p - 1) = Eigen::MatrixXd::Identity(p - 1, p - 1);
+  const Eigen::VectorXd rhs = Eigen::VectorXd::Zero(p - 1);
+  const MINEL el =
+    (intercept && p > 1)?
+    MINEL("lm", bhat, data, w, lhs, rhs, maxit, tol, th_nloglr(p - 1, th)) :
+    MINEL("lm", bhat, data, w, Eigen::MatrixXd::Identity(p, p),
+          Eigen::VectorXd::Zero(p), maxit, tol, th_nloglr(p, th));
+  const int df = (intercept && p > 1)? p - 1 : p;
+
+  // test each coefficient
+  Rcpp::NumericVector chisq_val(p);
+  Rcpp::LogicalVector conv(p);
+  Rcpp::Function pchisq("pchisq");
+  Rcpp::NumericVector pval(p);
+  for (int i = 0; i < p; ++i) {
+    Rcpp::checkUserInterrupt();
+    Eigen::MatrixXd lhs = Eigen::MatrixXd::Zero(1, p);
+    lhs(i) = 1.0;
+    const MINEL par_test("lm", bhat, data, w, lhs, Eigen::VectorXd::Zero(1),
+                         maxit, tol, th_nloglr(1, th));
+    chisq_val[i] = 2.0 * par_test.nllr;
+    conv[i] = par_test.conv;
+    pval[i] = Rcpp::as<double>(pchisq(chisq_val[i], Rcpp::Named("df") = 1,
+                                      Rcpp::Named("lower.tail") = false));
+  }
+
+  Rcpp::List result = Rcpp::List::create(
+    Rcpp::Named("optim") = Rcpp::List::create(
+      Rcpp::Named("method") = "lm",
+      Rcpp::Named("lambda") = el.l,
+      Rcpp::Named("logLR") = -el.nllr,
+      Rcpp::Named("iterations") = el.iter,
+      Rcpp::Named("convergence") = el.conv,
+      Rcpp::Named("par.tests") = Rcpp::List::create(
+        Rcpp::Named("statistic") = chisq_val,
+        Rcpp::Named("p.value") = pval,
+        Rcpp::Named("convergence") = conv)),
+    Rcpp::Named("npar") = p,
+    Rcpp::Named("log.prob") = el.logp(data, w),
+    Rcpp::Named("loglik") = el.loglik(w),
+    Rcpp::Named("coefficients") = bhat,
+    // Rcpp::Named("statistic") = ,
+    Rcpp::Named("df") = df,
+    Rcpp::Named("residuals") = resid,
+    Rcpp::Named("fitted.values") = fit_val);
   return result;
 }
