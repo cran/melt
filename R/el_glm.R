@@ -1,121 +1,163 @@
-#' #' Fits a generalized linear model with empirical likelihood
-#' #'
-#' #' Fits a generalized linear model with empirical likelihood.
-#' #'
-#' #' @param formula A formula object.
-#' #' @param family dd
-#' #' @param data A data frame containing the variables in the formula.
-#' #' @param weights An optional numeric vector of weights to be used in the
-#' #'   fitting process. If not provided, identical weights are applied. Otherwise,
-#' #'   weighted empirical likelihood is computed.
-#' #' @param control A list of control parameters. See ‘Details’ in
-#' #'   \code{\link{el_eval}}.
-#' #' @param model A logical. If \code{TRUE} the model matrix used for fitting is
-#' #'   returned.
-#' #' @param contrasts dd
-#' #' @param ... For glm: arguments to be used to form the default control argument
-#' #'   if it is not supplied directly.
-#' #' @return A list with class \code{c("el_lm", "el_test")}.
-#' #' @references Owen, Art. 1991. “Empirical Likelihood for Linear Models.”
-#' #'   The Annals of Statistics 19 (4).
-#' #'   \doi{10.1214/aos/1176348368}.
-#' #' @seealso \link{el_eval}, \link{lht}
-#' #' @examples
-#' #' fit <- el_lm(mpg ~ wt, mtcars)
-#' #' summary(fit)
-#' #' @importFrom stats gaussian glm.fit
-#' el_glm <- function(formula, family = gaussian, data, weights, control = list(),
-#'                    model = TRUE, contrasts = NULL, ...) {
-#'   cl <- match.call()
+#' Empirical likelihood for generalized linear models
 #'
-#'   if (is.character(family))
-#'     family <- get(family, mode = "function", envir = parent.frame())
-#'   if (is.function(family))
-#'     family <- family()
-#'   if (is.null(family$family)) {
-#'     print(family)
-#'     stop("'family' not recognized")
+#' Fits a generalized linear model with empirical likelihood.
+#'
+#' @param formula An object of class \code{"\link[stats]{formula}"} (or one that
+#'   can be coerced to that class): a symbolic description of the model to be
+#'   fitted.
+#' @param family A description of the error distribution and link function to be
+#'   used in the model. Only the result of a call to a family function is
+#'   supported. See ‘Details’.
+#' @param data An optional data frame, list or environment (or object coercible
+#'   by \code{\link[base]{as.data.frame}} to a data frame) containing the
+#'   variables in the formula. If not found in data, the variables are taken
+#'   from \code{environment(formula)}.
+#' @param weights An optional numeric vector of weights to be used in the
+#'   fitting process. Defaults to \code{NULL}, corresponding to identical
+#'   weights. If non-\code{NULL}, weighted empirical likelihood is computed.
+#' @param na.action A function which indicates what should happen when the data
+#'   contain \code{NA}s. The default is set by the \code{na.action} setting of
+#'   \code{\link[base]{options}}, and is \code{na.fail} if that is unset.
+#' @param control A list of control parameters set by \code{\link{el_control}}.
+#' @param model A logical. If \code{TRUE} the data matrix used for fitting is
+#'   returned.
+#' @param start Starting values for the parameters in the linear predictor.
+#'   Defaults to \code{NULL} and is passed to \code{\link[stats]{glm.fit}}.
+#' @param etastart Starting values for the linear predictor. Defaults to
+#'   \code{NULL} and is passed to \code{\link[stats]{glm.fit}}.
+#' @param mustart Starting values for the vector of means. Defaults to
+#'   \code{NULL} and is passed to \code{\link[stats]{glm.fit}}.
+#' @param ... Additional arguments to be passed to
+#'   \code{\link[stats]{glm.control}}.
+#' @details The available families and link functions are as follows:
+#'   \itemize{
+#'   \item{\code{gaussian}}{: \code{identity}, \code{log}, and \code{inverse}.}
+#'   \item{\code{bimomial}}{: \code{logit}, \code{probit}, and \code{log}.}
+#'   \item{\code{poisson}}{: \code{log}, \code{identity}, and \code{sqrt}.}
 #'   }
-#'
-#'   if (missing(data))
-#'     data <- environment(formula)
-#'
-#'   mf <- match.call(expand.dots = FALSE)
-#'   m <- match(c("formula", "data", "subset", "na.action"), names(mf), 0L)
-#'   mf <- mf[c(1L, m)]
-#'   mf$drop.unused.levels <- TRUE
-#'   mf[[1L]] <- quote(stats::model.frame)
-#'   mf <- eval(mf, parent.frame())
-#'   mt <- attr(mf, "terms")
-#'   y <- model.response(mf, "any")
-#'   if (length(dim(y)) == 1L) {
-#'     nm <- rownames(y)
-#'     dim(y) <- NULL
-#'     if (!is.null(nm))
-#'       names(y) <- nm
-#'   }
-#'   #
-#'   if (is.matrix(y))
-#'     stop("'el_glm' does not support multiple responses")
-#'   #
-#'
-#'   # what happens if model is empty
-#'   if (is.empty.model(mt)) {
-#'     # out <- list(optim = list(), npar = 0L, log.prob = numeric(),
-#'     #             loglik = numeric(), coefficients = numeric(), df = 0L,
-#'     #             residuals = y, fitted.values = 0 * y, na.action = action,
-#'     #             xlevels = .getXlevels(mt, mf), call = cl, terms = mt)
-#'     # if (keep.data)
-#'     #   out$data.matrix <- mm
-#'     # class(out) <- c("el_glm", "el_test")
-#'     # return(out)
-#'     return("empty model")
-#'   }
-#'   #
-#'
-#'   x <- model.matrix(mt, mf, contrasts)
-#'
-#'
-#'   mm <- cbind(y, x)
-#'   intercept <- attr(mt, "intercept")
-#'   ##
-#'   # fitting process comes here
-#'   aa <- glm.fit(x, y,
-#'           # weights = weights,
-#'           # weights = rep.int(1, nobs),
-#'           # weights = rep.int(1, NROW(x)),
-#'           start = NULL,
-#'           etastart = NULL,
-#'           mustart = NULL,
-#'           # offset = rep.int(0, nobs),
-#'           family = family,
-#'           control = list(),
-#'           intercept = attr(mt, "intercept") > 0L,
-#'           singular.ok = TRUE)$coefficients
-#'
-#'   ##
-#'   optcfg <- check_control(control)
-#'   if (missing(weights)) {
-#'     out <- glm_("logit", mm, aa, intercept, optcfg$maxit, optcfg$tol, optcfg$th)
-#'   } else {
-#'     # w <- check_weights(weights, NROW(mm))
-#'     # out <- glm_w_("logit", mm, w, intercept, optcfg$maxit, optcfg$tol, optcfg$th)
-#'     # out$weights <- w
-#'   }
-#'
-#'   if (model)
-#'     out$data.matrix <- mm
-#'   out$na.action <- attr(mf, "na.action")
-#'   # structure(c(fit, list(call = cal, formula = formula, terms = mt,
-#'   #                       data = data, offset = offset, control = control,
-#'   #                       method = method,
-#'   #                       contrasts = attr(X, "contrasts"),
-#'   #                       xlevels = .getXlevels(mt, mf))),
-#'   #           class = c(fit$class, c("glm", "lm")))
-#'   out$coefficients <- setNames(out$coefficients, colnames(x))
-#'   out$call <- cl
-#'   out$terms <- mt
-#'   out
-#' }
-#'
-#'
+#'   Included in the tests are the overall test with
+#'   \deqn{H_0: \beta_1 = \beta_2 = \cdots = \beta_{p-1} = 0,}
+#'   and the tests for each parameter with
+#'   \deqn{H_{0j}: \beta_j = 0,\ j = 0, \dots, p-1.}
+#'   The test results are returned as \code{optim} and \code{parTests},
+#'   respectively.
+#' @return An object of class of \linkS4class{GLM}.
+#' @references Chen, Song Xi, and Hengjian Cui. 2003.
+#'   “An Extended Empirical Likelihood for Generalized Linear Models.”
+#'   Statistica Sinica 13: 69–81.
+#' @seealso \link{el_control}, \link{el_lm}, \link{lht}
+#' @examples
+#' n <- 50
+#' x <- rnorm(n)
+#' x2 <- rnorm(n)
+#' l <- -2 + 0.2 * x + 3 * x2
+#' mu <- 1 / (1 + exp(-l))
+#' y <- rbinom(n, 1, mu)
+#' df <- data.frame(y, x, x2)
+#' fit <- el_glm(y ~ x + x2, family = binomial, df)
+#' summary(fit)
+#' @importFrom stats gaussian glm.fit model.extract model.weights pchisq
+#' @export
+el_glm <- function(formula, family = gaussian, data, weights = NULL, na.action,
+                   control = el_control(), model = TRUE, start = NULL,
+                   etastart = NULL, mustart = NULL, ...) {
+  cl <- match.call()
+  if (is.character(family)) {
+    family <- get(family, mode = "function", envir = parent.frame())
+  }
+  if (is.function(family)) {
+    family <- family()
+  }
+  if (is.null(family$family)) {
+    print(family)
+    stop("'family' not recognized")
+  }
+  if (missing(data)) {
+    data <- environment(formula)
+  }
+  mf <- match.call(expand.dots = FALSE)
+  m <- match(c(
+    "formula", "data", "weights", "na.action", "etastart",
+    "mustart"
+  ), names(mf), 0L)
+  mf <- mf[c(1L, m)]
+  mf$drop.unused.levels <- TRUE
+  mf[[1L]] <- quote(stats::model.frame)
+  mf <- eval(mf, parent.frame())
+  glm_control <- do.call("glm.control", list(...))
+  mt <- attr(mf, "terms")
+  Y <- model.response(mf, "any")
+  if (length(dim(Y)) == 1L) {
+    nm <- rownames(Y)
+    dim(Y) <- NULL
+    if (!is.null(nm)) {
+      names(Y) <- nm
+    }
+  }
+  if (is.matrix(Y)) {
+    stop("'el_glm' does not support grouped data")
+  }
+  X <- if (!is.empty.model(mt)) {
+    model.matrix(mt, mf, NULL)
+  } else {
+    matrix(, NROW(Y), 0L)
+  }
+  w <- as.vector(model.weights(mf))
+  if (!is.null(w) && !is.numeric(w)) {
+    stop("'weights' must be a numeric vector")
+  }
+  if (!is.null(w) && any(w < 0)) {
+    stop("negative weights not allowed")
+  }
+  mustart <- model.extract(mf, "mustart")
+  etastart <- model.extract(mf, "etastart")
+  if (is.empty.model(mt)) {
+    return(new("GLM",
+      # optim = list(method = "GLM"),
+      optim = list(
+        method = "GLM", par = numeric(), lambda = numeric(),
+        iterations = integer(), convergence = logical()
+      ),
+      misc = list(
+        call = cl, formula = formula, terms = mt,
+        offset = NULL, control = glm_control, method = "glm.fit",
+        contrasts = attr(X, "contrasts"), xlevels = .getXlevels(mt, mf),
+        na.action = attr(mf, "na.action")
+      )
+    ))
+  }
+  intercept <- attr(mt, "intercept") > 0L
+  fit <- glm.fit(
+    x = X, y = Y, weights = w, start = start, etastart = etastart,
+    mustart = mustart, offset = NULL, family = family,
+    control = glm_control, intercept = intercept,
+    singular.ok = FALSE
+  )
+  method <- check_family(fit$family)
+  mm <- cbind(fit$y, X)
+  p <- ncol(X)
+  w <- check_weights(w, nrow(mm))
+  if (!is(control, "ControlEL")) {
+    stop("invalid 'control' specified")
+  }
+  el <- glm_(
+    method$family, method$link, mm, fit$coefficients, intercept,
+    control@maxit, control@maxit_l, control@tol, control@tol_l,
+    control@step, control@th, control@nthreads, w
+  )
+  df <- if (intercept && p > 1L) p - 1L else p
+  pval <- pchisq(el$statistic, df = df, lower.tail = FALSE)
+  new("GLM",
+    optim = el$optim, logp = el$logp, logl = el$logl, loglr = el$loglr,
+    statistic = el$statistic, df = df, pval = pval, npar = p, weights = w,
+    data = if (model) mm else matrix(NA_real_, nrow = 0L, ncol = 0L),
+    coefficients = fit$coefficients, parTests = el$parTests,
+    misc = list(
+      family = fit$family, iter = fit$iter, converged = fit$converged,
+      boundary = fit$boundary, call = cl, formula = formula, terms = mt,
+      offset = NULL, control = glm_control, method = "glm.fit",
+      contrasts = attr(X, "contrasts"), xlevels = .getXlevels(mt, mf),
+      na.action = attr(mf, "na.action")
+    )
+  )
+}

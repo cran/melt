@@ -2,9 +2,9 @@
 % Please edit documentation in R/el_mean.R
 \name{el_mean}
 \alias{el_mean}
-\title{Empirical likelihood test for mean}
+\title{Empirical likelihood for the mean}
 \usage{
-el_mean(par, x, weights, control = list(), model = TRUE)
+el_mean(par, x, weights = NULL, control = el_control(), model = TRUE)
 }
 \arguments{
 \item{par}{A numeric vector of parameter values to be tested.}
@@ -13,21 +13,19 @@ el_mean(par, x, weights, control = list(), model = TRUE)
 matrix. Each row corresponds to an observation.}
 
 \item{weights}{An optional numeric vector of weights to be used in the
-fitting process. If not provided, identical weights are applied. Otherwise,
-weighted empirical likelihood is computed.}
+fitting process. Defaults to \code{NULL}, corresponding to identical
+weights. If non-\code{NULL}, weighted empirical likelihood is computed.}
 
-\item{control}{A list of control parameters. See ‘Details’ in
-\code{\link{el_eval}}.}
+\item{control}{A list of control parameters set by \code{\link{el_control}}.}
 
-\item{model}{A logical. If \code{TRUE} the model matrix used for fitting is
-returned.}
+\item{model}{A logical. If \code{TRUE} the data matrix used for model fitting
+is returned.}
 }
 \value{
-A list with class \code{"el_test"} as described in
-  \code{\link{lht}}.
+An object of class \linkS4class{EL}.
 }
 \description{
-Computes empirical likelihood for mean parameter.
+Computes empirical likelihood for the mean.
 }
 \examples{
 # scalar mean
@@ -37,25 +35,19 @@ el_mean(par, x)
 
 # vector mean
 par <- c(0, 0)
-x <- matrix(rnorm(100L), ncol = 2)
+x <- matrix(rnorm(100), ncol = 2)
 el_mean(par, x)
 
-# weighted EL
+# weighted data
 par <- c(0, 0)
 x <- matrix(rnorm(100), ncol = 2)
 w <- rep(c(1, 2), each = 25)
 el_mean(par, x, w)
 }
 \references{
-Glenn, N.L., and Yichuan Zhao. 2007.
-  “Weighted Empirical Likelihood Estimates and Their Robustness Properties.”
-  Computational Statistics & Data Analysis 51 (10): 5130–41.
-  \doi{10.1016/j.csda.2006.07.032}.
-
 Owen, Art. 1990. “Empirical Likelihood Ratio Confidence Regions.”
-  The Annals of Statistics 18 (1).
-  \doi{10.1214/aos/1176347494}.
+  The Annals of Statistics 18 (1): 90–120. \doi{10.1214/aos/1176347494}.
 }
 \seealso{
-\link{el_eval}, \link{lht}
+\link{el_control}, \link{el_eval}, \link{lht}
 }

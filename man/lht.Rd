@@ -4,13 +4,14 @@
 \alias{lht}
 \title{Linear hypothesis test}
 \usage{
-lht(object, rhs = NULL, lhs = NULL, control = list())
+lht(object, rhs = NULL, lhs = NULL, control = el_control())
 }
 \arguments{
-\item{object}{A fitted \code{"el_test"} object.}
+\item{object}{A fitted \linkS4class{EL} object.}
 
 \item{rhs}{A numeric vector for the right-hand-side of hypothesis, with as
-many entries as the rows in \code{lhs}. Defaults to \code{NULL}.}
+many entries as the rows in \code{lhs}. Defaults to \code{NULL}. See
+‘Details’.}
 
 \item{lhs}{A numeric matrix, or an object that can be coerced to a numeric
 matrix. It specifies the left-hand-side of hypothesis. Each row gives a
@@ -18,91 +19,67 @@ linear combination of parameters. The number of columns should be equal to
 the number of parameters in \code{object}. Defaults to \code{NULL}.
 See ‘Details’.}
 
-\item{control}{A list of control parameters. See ‘Details’.}
+\item{control}{A list of control parameters set by \code{\link{el_control}}.}
 }
 \value{
-A list with class \code{c("el_lht", "el_test")} with the following
-  components:
-  \describe{
-  \item{optim}{A list with the following optimization results:
-    \describe{
-      \item{method}{The type of estimating function.}
-      \item{lambda}{The Lagrange multiplier of dual problem.}
-      \item{logLR}{The (weighted) empirical log-likelihood ratio value.}
-      \item{iterations}{The number of iterations performed.}
-      \item{convergence}{A logical vector. \code{TRUE} indicates
-      convergence of the algorithm.}
-    }
-  }
-  \item{npar}{The number of parameters.}
-  \item{log.prob}{The log probabilities.}
-  \item{loglik}{The log likelihood value evaluated at the estimated
-  coefficients}
-  \item{coefficients}{The solution of the optimization.}
-  \item{statistic}{The chi-square statistic.}
-  \item{df}{The degrees of freedom of the statistic.}
-  \item{p.value}{The \eqn{p}-value of the statistic.}
-}
+If \code{lhs} is \code{NULL}, an object of class \linkS4class{EL}
+is returned. Otherwise, an object of class \linkS4class{CEL} is returned.
 }
 \description{
-Tests a linear hypothesis for objects inheriting from class \code{"el_test"}.
+Tests a linear hypothesis for objects that inherit from class
+  \linkS4class{EL}.
 }
 \details{
-Consider a linear hypothesis of the form \deqn{L\theta = r,} where
-  the left-hand-side \eqn{L} is a \eqn{q} by \eqn{p} matrix and the
-  right-hand-side \eqn{r} is a \eqn{q}-dimensional vector. Let
-  \eqn{l_n(\theta)} denote the minus twice the empirical log-likelihood ratio
-  function. Under some regularity conditions, \eqn{l_n(\theta)} is
-  asymptotically distributed as \eqn{\chi^2_q} under the constraint of
-  hypothesis, i.e.,
-  \deqn{\min_{\theta: L\theta = r} l_n(\theta) \to_d \chi^2_q .}
-  \code{lht} solves the constrained optimization problem using projected
-  gradient descent method. It is required that \code{lhs} have full row rank
-  \eqn{q \leq p} and \eqn{p} be equal to \code{object$npar}, the number of
-  parameters. \code{control} is a list that can supply any of the following
-  components:
-  \describe{
-  \item{maxit}{The maximum number of iterations for the optimization.
-  Defaults to \code{100}.}
-  \item{tol}{The relative convergence tolerance, denoted by \eqn{\epsilon}.
-  With the orthogonal projector matrix \eqn{P} and an initial value
-  \eqn{\theta^{(0)}}, the iteration stops when
-  \deqn{\|P \nabla l_n(\theta^{(k)})\| \leq
-  \epsilon\|P \nabla l_n(\theta^{(0)})\| + \epsilon^2.}
-  Defaults to \code{1e-06}.}
-  \item{th}{The threshold for negative empirical log-likelihood ratio value.
-  The iteration stops if the value exceeds the threshold.
-  Defaults to \code{NULL} and sets the threshold to \eqn{200p}.}
+\code{\link{lht}} performs the constrained minimization of
+  \eqn{l(\theta)} described in \linkS4class{CEL}. \code{rhs} and \code{lhs}
+  cannot be both \code{NULL}. For non-\code{NULL} \code{lhs}, it is required
+  that \code{lhs} have full row rank \eqn{q \leq p} and \eqn{p} be equal to
+  \code{object$npar}, the number of parameters in the fitted model.
+
+  Depending on the specification of \code{rhs} and \code{lhs}, we have the
+  following three cases:
+  \enumerate{
+  \item If both \code{rhs} and \code{lhs} are non-\code{NULL}, the
+  constrained minimization is performed with the right-hand-side \eqn{r} and
+  the left-hand-side \eqn{L} as
+  \deqn{\min_{\theta: L\theta = r} l(\theta).}
+  \item If \code{rhs} is \code{NULL}, \eqn{r} is set to the zero vector as
+  \deqn{\min_{\theta: L\theta = 0} l(\theta).}
+  \item If \code{lhs} is \code{NULL}, \eqn{L} is set to the identity matrix
+  and the problem reduces to evaluating at \eqn{r} as
+  \deqn{l(r).}
   }
 }
 \examples{
-n <- 100
+n <- 100L
 x1 <- rnorm(n)
 x2 <- rnorm(n)
 y <- 1 + x1 + x2 + rnorm(n)
 df <- data.frame(y, x1, x2)
 fit <- el_lm(y ~ x1 + x2, df)
-lhs <- matrix(c(0, 1, -1), nrow = 1)
+lhs <- matrix(c(0, 1, -1), nrow = 1L)
 lht(fit, lhs = lhs)
 
 # test of no treatment effect
 data("clothianidin")
-lhs2 <- matrix(c(1, -1, 0, 0,
-                 0, 1, -1, 0,
-                 0, 0, 1, -1), byrow = TRUE, nrow = 3)
+lhs2 <- matrix(c(
+  1, -1, 0, 0,
+  0, 1, -1, 0,
+  0, 0, 1, -1
+), byrow = TRUE, nrow = 3L)
 fit2 <- el_lm(clo ~ -1 + trt, clothianidin)
 lht(fit2, lhs = lhs2)
 }
 \references{
-Kim, E., MacEachern, S., and Peruggia, M., (2021),
-"Empirical Likelihood for the Analysis of Experimental Designs,"
-\href{https://arxiv.org/abs/2112.09206}{arxiv:2112.09206}.
+Adimari, Gianfranco, and Annamaria Guolo. 2010.
+  “A Note on the Asymptotic Behaviour of Empirical Likelihood Statistics.”
+  Statistical Methods & Applications 19 (4): 463–76.
+  \doi{10.1007/s10260-010-0137-9}.
 
 Qin, Jing, and Jerry Lawless. 1995.
   “Estimating Equations, Empirical Likelihood and Constraints on Parameters.”
-  Canadian Journal of Statistics 23 (2): 145–59.
-  \doi{10.2307/3315441}.
+  Canadian Journal of Statistics 23 (2): 145–59. \doi{10.2307/3315441}.
 }
 \seealso{
-\link{el_eval}
+\link{el_control}
 }

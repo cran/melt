@@ -1,7 +1,7 @@
 Package: melt
 Type: Package
 Title: Multiple Empirical Likelihood Tests
-Version: 1.4.0
+Version: 1.5.0
 Description: Performs multiple empirical likelihood tests for regression analysis. 
     Much of its functionality and syntax mimics the corresponding base R functions. 
     The core computational routines are implemented using the 'Eigen' C++ library 
@@ -12,8 +12,8 @@ Description: Performs multiple empirical likelihood tests for regression analysi
 URL: https://github.com/markean/melt
 BugReports: https://github.com/markean/melt/issues
 License: GPL (>= 2)
-Depends: R (>= 3.6.0)
-Imports: Rcpp (>= 1.0.6), stats
+Depends: R (>= 4.0.0)
+Imports: methods, Rcpp (>= 1.0.8), stats
 LinkingTo: Rcpp, RcppEigen, RcppProgress
 Encoding: UTF-8
 RoxygenNote: 7.1.2
@@ -29,13 +29,13 @@ Authors@R:
       person(given = "Mario",
              family = "Peruggia",
              role = c("aut", "ths")))
-Suggests: covr, knitr, rmarkdown, testthat (>= 3.0.0)
+Suggests: spelling, covr, knitr, rmarkdown, testthat (>= 3.0.0)
 Config/testthat/edition: 3
-VignetteBuilder: knitr
-Packaged: 2022-04-03 09:50:48 UTC; markean
+Language: en-US
+Packaged: 2022-05-03 20:44:58 UTC; markean
 Author: Eunseop Kim [aut, cre],
   Steven MacEachern [aut, ths],
   Mario Peruggia [aut, ths]
 Maintainer: Eunseop Kim <kim.7302@osu.edu>
 Repository: CRAN
-Date/Publication: 2022-04-03 19:20:07 UTC
+Date/Publication: 2022-05-03 21:10:02 UTC
