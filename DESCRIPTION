@@ -1,7 +1,7 @@
 Package: melt
 Type: Package
 Title: Multiple Empirical Likelihood Tests
-Version: 1.5.0
+Version: 1.5.1
 Description: Performs multiple empirical likelihood tests for regression analysis. 
     Much of its functionality and syntax mimics the corresponding base R functions. 
     The core computational routines are implemented using the 'Eigen' C++ library 
@@ -32,10 +32,10 @@ Authors@R:
 Suggests: spelling, covr, knitr, rmarkdown, testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Language: en-US
-Packaged: 2022-05-03 20:44:58 UTC; markean
+Packaged: 2022-05-06 09:02:51 UTC; markean
 Author: Eunseop Kim [aut, cre],
   Steven MacEachern [aut, ths],
   Mario Peruggia [aut, ths]
 Maintainer: Eunseop Kim <kim.7302@osu.edu>
 Repository: CRAN
-Date/Publication: 2022-05-03 21:10:02 UTC
+Date/Publication: 2022-05-06 09:30:02 UTC
