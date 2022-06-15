@@ -52,7 +52,7 @@ setMethod(
     if (!is(control, "ControlEL")) {
       stop("invalid 'control' specified")
     }
-    method <- object@optim$method
+    method <- getMethodEL(object)
     maxit <- control@maxit
     maxit_l <- control@maxit_l
     tol <- control@tol
@@ -73,8 +73,9 @@ setMethod(
     } else if (any(is.na(idx))) {
       idx_na <- which(is.na(idx))
       ci <- matrix(NA, nrow = p, ncol = 2L)
-      ci[-idx_na, ] <- confint_(method, est, object@data, cv,
-                                idx[-idx_na], maxit, tol, step, th, nthreads, w)
+      ci[-idx_na, ] <- confint_(method, est, object@data, cv, idx[-idx_na],
+                                maxit, maxit_l, tol, tol_l, step, th, nthreads,
+                                w)
     } else {
       ci <- confint_(method, est, object@data, cv, idx, maxit, maxit_l,
                      tol, tol_l, step, th, nthreads, w)

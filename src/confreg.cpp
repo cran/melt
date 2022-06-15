@@ -1,4 +1,8 @@
 #include "EL.h"
+#include "utils.h"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 // [[Rcpp::export]]
 Rcpp::NumericVector confreg_(
@@ -7,7 +11,7 @@ Rcpp::NumericVector confreg_(
     const Eigen::Map<Eigen::MatrixXd>& x,
     const int npar,
     const double cutoff,
-    const Rcpp::IntegerVector idx,
+    const Rcpp::IntegerVector& idx,
     const Eigen::Map<Eigen::MatrixXd>& circ,
     const int maxit,
     const int maxit_l,

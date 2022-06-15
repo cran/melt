@@ -1,7 +1,2 @@
-#' @rdname coef-method
-setMethod(
-  "coef", "EL",
-  function(object, ...) {
-    object@coefficients
-  }
-)
+#' @rdname coef
+setMethod("coef", "EL", function(object, ...) {object@coefficients})

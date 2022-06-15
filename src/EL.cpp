@@ -1,33 +1,27 @@
 #include "EL.h"
+#include "utils.h"
 
-// lm
 Eigen::MatrixXd g_lm(const Eigen::Ref<const Eigen::MatrixXd>& x,
                      const Eigen::Ref<const Eigen::VectorXd>& par)
 {
-  // const Eigen::VectorXd y = data.col(0);
-  // const Eigen::MatrixXd x = data.rightCols(data.cols() - 1);
-  // return x.array().colwise() * (y - x * beta).array();
   return x.rightCols(x.cols() - 1).array().colwise() *
     (x.col(0) - x.rightCols(x.cols() - 1) * par).array();
 }
-Eigen::VectorXd gr_nloglr_lm(
-    const Eigen::Ref<const Eigen::VectorXd>& l,
-    const Eigen::Ref<const Eigen::MatrixXd>& g,
-    const Eigen::Ref<const Eigen::MatrixXd>& data,
-    const Eigen::Ref<const Eigen::VectorXd>& par,
-    const Eigen::Ref<const Eigen::ArrayXd>& w,
-    const bool weighted)
+Eigen::VectorXd gr_nloglr_lm(const Eigen::Ref<const Eigen::VectorXd>& l,
+                             const Eigen::Ref<const Eigen::MatrixXd>& g,
+                             const Eigen::Ref<const Eigen::MatrixXd>& x,
+                             const Eigen::Ref<const Eigen::VectorXd>& par,
+                             const Eigen::Ref<const Eigen::ArrayXd>& w,
+                             const bool weighted)
 {
-  const double n = static_cast<double>(g.rows());
-  const Eigen::MatrixXd x = data.rightCols(data.cols() - 1);
-  const Eigen::ArrayXd denom = Eigen::VectorXd::Ones(g.rows()) + g * l;
+  const Eigen::MatrixXd xmat = x.rightCols(x.cols() - 1);
+  Eigen::ArrayXd c(x.rows());
   if (weighted) {
-    const Eigen::MatrixXd xx = x.array().colwise() * (w / denom);
-    return -(x.transpose() * xx) * l;
+    c = w * inverse((Eigen::VectorXd::Ones(g.rows()) + g * l).array());
   } else {
-    const Eigen::MatrixXd xx = x.array().colwise() / denom;
-    return -(x.transpose() * xx) * l;
+    c = inverse((Eigen::VectorXd::Ones(g.rows()) + g * l).array());
   }
+  return -(xmat.transpose() * (xmat.array().colwise() * c).matrix()) * l;
 }
 
 
@@ -210,6 +204,7 @@ Eigen::VectorXd gr_nloglr_poi_sqrt(const Eigen::Ref<const Eigen::VectorXd>& l,
 Eigen::MatrixXd g_qbin_logit(const Eigen::Ref<const Eigen::MatrixXd>& x,
                              const Eigen::Ref<const Eigen::VectorXd>& par)
 {
+  const double n = static_cast<double>(x.rows());
   const int p = x.cols() - 1;
   const Eigen::VectorXd beta = par.head(p);
   const double phi = par(p);
@@ -217,13 +212,23 @@ Eigen::MatrixXd g_qbin_logit(const Eigen::Ref<const Eigen::MatrixXd>& x,
   const Eigen::MatrixXd xmat = x.rightCols(p);
 
   Eigen::MatrixXd out(x.rows(), p + 1);
-  out.leftCols(p) = xmat.array().colwise() * (y - logit_linkinv(xmat * beta));
+  out.leftCols(p) = xmat.array().colwise() *
+    (y - logit_linkinv(xmat * beta));
+  // out.leftCols(p) =std::pow(n, -8) *(xmat.array().colwise() *
+  //   (y - logit_linkinv(xmat * beta)));
+  // out.leftCols(p) = xmat.array().colwise() *
+  //   (1.0 / phi * (y - logit_linkinv(xmat * beta)));
   // out.rightCols(1) = square(y - logit_linkinv(xmat * beta)) *
   //   inverse(phi * phi * logit_linkinv(xmat * beta) *
   //   (1.0 - logit_linkinv(xmat * beta))) - 1.0 / phi;
+
   out.col(p) = inverse(phi * phi * logit_linkinv(xmat * beta) *
     (1.0 - logit_linkinv(xmat * beta))) *
     square(y - logit_linkinv(xmat * beta)) - 1.0 / phi;
+  // out.col(p) = out.col(p) / 20.0;
+  // out.col(p) = inverse(logit_linkinv(xmat * beta) *
+  //   (1.0 - logit_linkinv(xmat * beta))) *
+  //   square(y - logit_linkinv(xmat * beta)) - phi;
   return out;
 }
 Eigen::VectorXd gr_nloglr_qbin_logit(
@@ -315,17 +320,7 @@ std::function<Eigen::VectorXd(const Eigen::Ref<const Eigen::MatrixXd>&,
       const Eigen::Ref<const Eigen::MatrixXd>&,
       const Eigen::Ref<const Eigen::ArrayXd>&)>>
         mele_map{{{"mean", mele_mean},
-                  {"lm", mele_lm},
-                  {"gaussian_identity", mele_lm},
-                  {"gaussian_log", mele_lm},
-                  {"gaussian_inverse", mele_lm},
-                  {"binomial_logit", mele_lm},
-                  {"binomial_probit", mele_lm},
-                  {"binomial_log", mele_lm},
-                  {"poisson_log", mele_lm},
-                  {"poisson_identity", mele_lm},
-                  {"poisson_sqrt", mele_lm},
-                  {"quasibinomial_logit", mele_lm}}};
+                  {"lm", mele_lm}}};
   return mele_map[method];
 }
 
@@ -447,6 +442,7 @@ MINEL::MINEL(const std::string method,
   par = proj * par0 + lhs.transpose() * (lhs * lhs.transpose()).inverse() * rhs;
   // estimating function
   Eigen::MatrixXd g = g_fn(x, par);
+
   // lambda
   l = EL(g, maxit_l, tol_l, th, wt).l;
   // function value (-logLR)
@@ -517,10 +513,6 @@ MINEL::MINEL(const std::string method,
     ++iter;
   }
 }
-
-
-
-
 
 std::function<Eigen::MatrixXd(const Eigen::Ref<const Eigen::MatrixXd>&,
                               const Eigen::Ref<const Eigen::VectorXd>&)>

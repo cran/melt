@@ -25,23 +25,23 @@
 #'   \eqn{p}-dimensional covariate (including the intercept if any) and
 #'   \eqn{Y_i} is the response. We consider the following linear regression
 #'   model:
-#'   \deqn{Y_i = X_i^\top \beta + \epsilon_i,}
-#'   where \eqn{\beta = (\beta_0, \dots, \beta_{p-1})} is an unknown
+#'   \deqn{Y_i = X_i^\top \theta + \epsilon_i,}
+#'   where \eqn{\theta = (\theta_0, \dots, \theta_{p-1})} is an unknown
 #'   \eqn{p}-dimensional parameter and the errors \eqn{\epsilon_i} are
 #'   independent random variables that satisfy
 #'   \eqn{\textnormal{E}(\epsilon_i | X_i)} = 0. We assume that the errors have
-#'   finite conditional variance. Then the least square estimator of \eqn{\beta}
+#'   finite conditional variance. Then the least square estimator of \eqn{\theta}
 #'   solves the following estimating equation:
-#'   \deqn{\sum_{i = 1}^n(Y_i - X_i^\top \beta)X_i = 0.}
+#'   \deqn{\sum_{i = 1}^n(Y_i - X_i^\top \theta)X_i = 0.}
 #'   \code{\link{el_lm}} first computes the parameter estimates by calling
 #'   \code{\link[stats]{lm.fit}} (with \code{...} if any) since the maximum
 #'   empirical likelihood estimator is the same as the least square estimator in
 #'   our model. Next, it performs hypothesis tests based on asymptotic
 #'   chi-squared distribution of empirical likelihood ratio statistics. Included
 #'   in the tests are the overall test with
-#'   \deqn{H_0: \beta_1 = \beta_2 = \cdots = \beta_{p-1} = 0,}
+#'   \deqn{H_0: \theta_1 = \theta_2 = \cdots = \theta_{p-1} = 0,}
 #'   and the tests for each parameter with
-#'   \deqn{H_{0j}: \beta_j = 0,\ j = 0, \dots, p-1.}
+#'   \deqn{H_{0j}: \theta_j = 0,\ j = 0, \dots, p-1.}
 #'   The test results are returned as \code{optim} and \code{parTests},
 #'   respectively.
 #' @return An object of class of \linkS4class{LM}.
@@ -82,13 +82,13 @@ el_lm <- function(formula, data, weights = NULL, na.action,
     x <- NULL
     mm <- cbind(y, x)
     return(new("LM",
-      optim = list(
-        method = "lm", par = numeric(), lambda = numeric(),
-        iterations = integer(), convergence = logical()
-      ),
       misc = list(
         call = cl, terms = mt, xlevels = .getXlevels(mt, mf),
         na.action = attr(mf, "na.action")
+      ),
+      optim = list(
+        par = numeric(), lambda = numeric(), iterations = integer(),
+        convergence = logical()
       )
     ))
   } else {
@@ -107,20 +107,20 @@ el_lm <- function(formula, data, weights = NULL, na.action,
     stop("invalid 'control' specified")
   }
   el <- lm_(
-    mm, z$coefficients, intercept, control@maxit, control@maxit_l,
-    control@tol, control@tol_l, control@step, control@th,
-    control@nthreads, w
+    mm, z$coefficients, intercept, control@maxit, control@maxit_l, control@tol,
+    control@tol_l, control@step, control@th, control@nthreads, w
   )
   df <- if (intercept && p > 1L) p - 1L else p
   pval <- pchisq(el$statistic, df = df, lower.tail = FALSE)
   new("LM",
-    optim = el$optim, logp = el$logp, logl = el$logl, loglr = el$loglr,
-    statistic = el$statistic, df = df, pval = pval, npar = p, weights = w,
-    data = if (model) mm else matrix(NA_real_, nrow = 0L, ncol = 0L),
-    coefficients = z$coefficients, parTests = el$parTests,
+    parTests = el$parTests,
     misc = list(
       call = cl, terms = mt, xlevels = .getXlevels(mt, mf),
       na.action = attr(mf, "na.action")
-    )
+    ),
+    optim = el$optim, logp = el$logp, logl = el$logl, loglr = el$loglr,
+    statistic = el$statistic, df = df, pval = pval, npar = p, weights = w,
+    data = if (model) mm else matrix(NA_real_, nrow = 0L, ncol = 0L),
+    coefficients = z$coefficients, method = "lm"
   )
 }

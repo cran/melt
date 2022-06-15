@@ -3,11 +3,6 @@
 
 #include "eigen_config.h"
 #include <RcppEigen.h>
-// #include <cmath>
-#include "utils.h"
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 class EL
 {
@@ -93,18 +88,6 @@ public:
 
   // constructors
   // minimization
-  // MINEL(const std::string method,
-  //       const Eigen::Ref<const Eigen::VectorXd>& par0,
-  //       const Eigen::Ref<const Eigen::MatrixXd>& x,
-  //       const Eigen::Ref<const Eigen::MatrixXd>& lhs,
-  //       const Eigen::Ref<const Eigen::VectorXd>& rhs,
-  //       const int maxit,
-  //       const int maxit_l,
-  //       const double tol,
-  //       const double tol_l,
-  //       const double th,
-  //       const Rcpp::Nullable<const Eigen::Map<const Eigen::ArrayXd>&> wt);
-
   MINEL(const std::string method,
         const Eigen::Ref<const Eigen::VectorXd>& par0,
         const Eigen::Ref<const Eigen::MatrixXd>& x,
@@ -117,7 +100,6 @@ public:
         const double step,
         const double th,
         const Eigen::Ref<const Eigen::ArrayXd>& wt);
-
   // functions for constructors
   std::function<Eigen::MatrixXd(const Eigen::Ref<const Eigen::MatrixXd>&,
                                 const Eigen::Ref<const Eigen::VectorXd>&)>
@@ -182,16 +164,24 @@ public:
                     const Eigen::Ref<const Eigen::ArrayXd>& w);
 };
 
-// lm
+
+
+
+
+
+
+
+
+
+
 Eigen::MatrixXd g_lm(const Eigen::Ref<const Eigen::MatrixXd>& x,
                      const Eigen::Ref<const Eigen::VectorXd>& par);
-Eigen::VectorXd gr_nloglr_lm(
-    const Eigen::Ref<const Eigen::VectorXd>& l,
-    const Eigen::Ref<const Eigen::MatrixXd>& g,
-    const Eigen::Ref<const Eigen::MatrixXd>& data,
-    const Eigen::Ref<const Eigen::VectorXd>& par,
-    const Eigen::Ref<const Eigen::ArrayXd>& w,
-    const bool weighted);
+Eigen::VectorXd gr_nloglr_lm(const Eigen::Ref<const Eigen::VectorXd>& l,
+                             const Eigen::Ref<const Eigen::MatrixXd>& g,
+                             const Eigen::Ref<const Eigen::MatrixXd>& x,
+                             const Eigen::Ref<const Eigen::VectorXd>& par,
+                             const Eigen::Ref<const Eigen::ArrayXd>& w,
+                             const bool weighted);
 
 
 // Binomial family

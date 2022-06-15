@@ -20,7 +20,8 @@ Eigen::ArrayXd log_linkinv(const Eigen::Ref<const Eigen::VectorXd>& x)
 }
 Eigen::ArrayXd logit_linkinv(const Eigen::Ref<const Eigen::VectorXd>& x)
 {
-  return 1.0 / (1.0 + exp(-x.array()));
+  // return 1.0 / (1.0 + exp(-x.array()));
+  return inverse(1.0 + exp(-x.array()));
 }
 Eigen::ArrayXd probit_linkinv(const Eigen::Ref<const Eigen::VectorXd>& x)
 {
@@ -54,32 +55,34 @@ Eigen::VectorXd mele_lm(const Eigen::Ref<const Eigen::MatrixXd>& data,
   }
 };
 
+
 Eigen::MatrixXd g_mean(const Eigen::Ref<const Eigen::MatrixXd>& x,
                        const Eigen::Ref<const Eigen::VectorXd>& par)
 {
   return x.rowwise() - par.transpose();
 }
-Eigen::VectorXd gr_nloglr_mean(
-    const Eigen::Ref<const Eigen::VectorXd>& l,
-    const Eigen::Ref<const Eigen::MatrixXd>& g,
-    const Eigen::Ref<const Eigen::MatrixXd>& data,
-    const Eigen::Ref<const Eigen::VectorXd>& par,
-    const Eigen::Ref<const Eigen::ArrayXd>& w,
-    const bool weighted)
+Eigen::VectorXd gr_nloglr_mean(const Eigen::Ref<const Eigen::VectorXd>& l,
+                               const Eigen::Ref<const Eigen::MatrixXd>& g,
+                               const Eigen::Ref<const Eigen::MatrixXd>& x,
+                               const Eigen::Ref<const Eigen::VectorXd>& par,
+                               const Eigen::Ref<const Eigen::ArrayXd>& w,
+                               const bool weighted)
 {
-  // const int n = g.rows();
-  const Eigen::ArrayXd denominator = Eigen::VectorXd::Ones(g.rows()) + g * l;
-  // if (w.size() == 0) {
-  //   return -(1.0 / denominator).sum() * l / n;
-  // } else {
-  //   return -(w / denominator).sum() * l / n;
-  // }
+  Eigen::ArrayXd c(x.rows());
   if (weighted) {
-    return -(w / denominator).sum() * l;
+    c = w * inverse((Eigen::VectorXd::Ones(g.rows()) + g * l).array());
   } else {
-    return -(1.0 / denominator).sum() * l;
+    c = inverse((Eigen::VectorXd::Ones(g.rows()) + g * l).array());
   }
+  return c.sum() * l;
 }
+
+
+
+
+
+
+
 
 
 Eigen::MatrixXd g_gauss_log(const Eigen::Ref<const Eigen::MatrixXd>& data,
@@ -147,7 +150,11 @@ Eigen::VectorXd gr_nloglr_gauss_inverse(
 
 
 
-
+double quantileRcpp(const Rcpp::NumericVector& x, const double prob) {
+  Rcpp::Environment stats("package:stats");
+  Rcpp::Function quantile = stats["quantile"];
+  return Rcpp::as<double>(quantile(x, Rcpp::Named("probs") = prob));
+}
 
 
 
