@@ -1,33 +1,37 @@
 Type: Package
 Package: melt
 Title: Multiple Empirical Likelihood Tests
-Version: 1.5.2
+Version: 1.6.0
 Authors@R: c(
     person("Eunseop", "Kim", , "kim.7302@osu.edu", role = c("aut", "cre")),
-    person("Steven", "MacEachern", role = c("aut", "ths")),
-    person("Mario", "Peruggia", role = c("aut", "ths"))
+    person("Steven", "MacEachern", role = c("ctb", "ths")),
+    person("Mario", "Peruggia", role = c("ctb", "ths"))
   )
 Description: Performs multiple empirical likelihood tests for linear and
-    generalized linear models.  The core computational routines are
+    generalized linear models. The core computational routines are
     implemented using the 'Eigen' C++ library and 'RcppEigen' interface,
     with OpenMP for parallel computation. Details of multiple testing
-    procedures are given in Kim et al. (2021) <arxiv:2112.09206>.
+    procedures are given in Kim, MacEachern, and Peruggia (2021)
+    <arxiv:2112.09206>.
 License: GPL (>= 2)
-URL: https://github.com/markean/melt
+URL: https://github.com/markean/melt, https://markean.github.io/melt/
 BugReports: https://github.com/markean/melt/issues
 Depends: R (>= 4.0.0)
-Imports: methods, Rcpp (>= 1.0.8), stats
-Suggests: covr, knitr, rmarkdown, spelling, testthat (>= 3.0.0)
-LinkingTo: Rcpp, RcppEigen, RcppProgress
+Imports: graphics, methods, Rcpp, stats
+Suggests: covr, ggplot2, knitr, microbenchmark, rmarkdown, spelling,
+        testthat (>= 3.0.0), withr
+LinkingTo: BH, dqrng, Rcpp, RcppEigen
+VignetteBuilder: knitr
 Config/testthat/edition: 3
 Encoding: UTF-8
 Language: en-US
+LazyData: true
 NeedsCompilation: yes
 RoxygenNote: 7.2.0
-Packaged: 2022-06-15 02:07:19 UTC; markean
+Packaged: 2022-07-10 07:50:58 UTC; markean
 Author: Eunseop Kim [aut, cre],
-  Steven MacEachern [aut, ths],
-  Mario Peruggia [aut, ths]
+  Steven MacEachern [ctb, ths],
+  Mario Peruggia [ctb, ths]
 Maintainer: Eunseop Kim <kim.7302@osu.edu>
 Repository: CRAN
-Date/Publication: 2022-06-15 06:20:06 UTC
+Date/Publication: 2022-07-10 09:20:02 UTC

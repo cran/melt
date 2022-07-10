@@ -3,7 +3,8 @@
 \docType{class}
 \name{GLM-class}
 \alias{GLM-class}
-\title{S4 class \linkS4class{GLM}}
+\alias{GLM}
+\title{\linkS4class{GLM} class}
 \description{
 S4 class for generalized linear models with empirical likelihood. It inherits
 from \linkS4class{LM} class.

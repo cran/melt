@@ -4,22 +4,23 @@
 \alias{el_mean}
 \title{Empirical likelihood for the mean}
 \usage{
-el_mean(par, x, weights = NULL, control = el_control(), model = TRUE)
+el_mean(x, par, weights = NULL, control = el_control())
 }
 \arguments{
-\item{par}{A numeric vector of parameter values to be tested.}
-
 \item{x}{A numeric matrix, or an object that can be coerced to a numeric
-matrix. Each row corresponds to an observation.}
+matrix. Each row corresponds to an observation. The number of rows must be
+greater than the number of columns.}
+
+\item{par}{A numeric vector of parameter values to be tested. The length of
+the vector must be the same as the number of columns in \code{x}.}
 
 \item{weights}{An optional numeric vector of weights to be used in the
-fitting process. Defaults to \code{NULL}, corresponding to identical
-weights. If non-\code{NULL}, weighted empirical likelihood is computed.}
+fitting process. The length of the vector must be the same as the number of
+rows in \code{x}. Defaults to \code{NULL}, corresponding to identical weights.
+If non-\code{NULL}, weighted empirical likelihood is computed.}
 
-\item{control}{A list of control parameters set by \code{\link{el_control}}.}
-
-\item{model}{A logical. If \code{TRUE} the data matrix used for model fitting
-is returned.}
+\item{control}{An object of class \linkS4class{ControlEL} constructed by
+\code{\link[=el_control]{el_control()}}.}
 }
 \value{
 An object of class \linkS4class{EL}.
@@ -28,26 +29,29 @@ An object of class \linkS4class{EL}.
 Computes empirical likelihood for the mean.
 }
 \examples{
-# scalar mean
-par <- 0
+## Scalar mean
+set.seed(414)
 x <- rnorm(100)
-el_mean(par, x)
+par <- 0
+el_mean(x, par)
 
-# vector mean
-par <- c(0, 0)
+## Vector mean
 x <- matrix(rnorm(100), ncol = 2)
-el_mean(par, x)
+par <- c(0, 0)
+el_mean(x, par)
 
-# weighted data
-par <- c(0, 0)
+## Weighted data
 x <- matrix(rnorm(100), ncol = 2)
+par <- c(0, 0)
 w <- rep(c(1, 2), each = 25)
-el_mean(par, x, w)
+el_mean(x, par, w)
 }
 \references{
-Owen, Art. 1990. “Empirical Likelihood Ratio Confidence Regions.”
-  The Annals of Statistics 18 (1): 90–120. \doi{10.1214/aos/1176347494}.
+Owen A (1990).
+“Empirical Likelihood Ratio Confidence Regions.”
+The Annals of Statistics, 18(1), 90–120.
+\doi{10.1214/aos/1176347494}.
 }
 \seealso{
-\link{el_control}, \link{el_eval}, \link{lht}
+\code{\link[=el_control]{el_control()}}, \code{\link[=el_eval]{el_eval()}}, \code{\link[=elt]{elt()}}
 }

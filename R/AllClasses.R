@@ -1,13 +1,14 @@
-#' S4 class \linkS4class{EL}
+#' \linkS4class{EL} class
 #'
 #' S4 class for empirical likelihood.
 #'
 #' @details Let \eqn{X_i} be independent and identically distributed
 #'   \eqn{p}-dimensional random variable from an unknown distribution \eqn{F}
-#'   for \eqn{i = 1, \dots, n}. For a parameter of interest \eqn{\theta(F) \in
-#'   {\rm{I\!R}}^p}, consider a \eqn{p}-dimensional smooth estimating function
-#'   \eqn{g(X_i, \theta)} with a moment condition
-#'   \deqn{\textnormal{E}[g(X_i, \theta)] = 0.}
+#'   for \eqn{i = 1, \dots, n}. We assume that \eqn{F} has a positive definite
+#'   covariance matrix. For a parameter of interest
+#'   \eqn{\theta(F) \in {\rm{I\!R}}^p}, consider a \eqn{p}-dimensional smooth
+#'   estimating function \eqn{g(X_i, \theta)} with a moment condition
+#'   \deqn{\textrm{E}[g(X_i, \theta)] = 0.}
 #'   We assume that there exists an unique \eqn{\theta_0} that solves the above
 #'   equation. Given a value of \eqn{\theta}, the (profile) empirical likelihood
 #'   ratio is defined by
@@ -34,54 +35,67 @@
 #'   \eqn{p} degrees of freedom.
 #' @slot optim A list with the following optimization results:
 #'   \itemize{
-#'   \item{\code{method } }{Character for method dispatch in internal
-#'   functions.}
-#'   \item{\code{par } }{Parameter value specified.}
-#'   \item{\code{lambda } }{Lagrange multiplier of the dual problem.}
-#'   \item{\code{iterations } }{Number of iterations performed.}
-#'   \item{\code{convergence } }{Convergence status.}
+#'   \item{`par ` }{A numeric vector of the specified parameters.}
+#'   \item{`lambda ` }{A numeric vector of the Lagrange multipliers.}
+#'   \item{`iterations ` }{A single integer for the number of iterations
+#'   performed.}
+#'   \item{`convergence ` }{A single logical for the convergence status.}
 #'   }
-#' @slot logp Log probabilities obtained from empirical likelihood.
-#' @slot logl Empirical log-likelihood.
-#' @slot loglr Empirical log-likelihood ratio.
-#' @slot statistic Minus twice the empirical log-likelihood ratio statistic that
-#'   has an asymptotic chi-square distribution.
-#' @slot df Degrees of freedom of the statistic.
-#' @slot pval \eqn{p}-value of the statistic.
-#' @slot npar Number of parameters.
-#' @slot weights Rescaled weights used for model fitting.
-#' @slot data Data matrix used for model fitting.
-#' @slot coefficients Maximum empirical likelihood estimates of the parameters.
-#' @slot method Character for method dispatch in internal functions.
-#' @references Glenn, N.L., and Yichuan Zhao. 2007.
-#'   “Weighted Empirical Likelihood Estimates and Their Robustness Properties.”
-#'   Computational Statistics & Data Analysis 51 (10): 5130–41.
-#'   \doi{10.1016/j.csda.2006.07.032}.
-#' @references Qin, Jin, and Jerry Lawless. 1994.
+#' @slot logp A numeric vector of the log probabilities obtained from empirical
+#'   likelihood.
+#' @slot logl A single numeric for the empirical log-likelihood.
+#' @slot loglr A single numeric for the empirical log-likelihood ratio.
+#' @slot statistic A single numeric for the minus twice the empirical
+#'   log-likelihood ratio statistic that has an asymptotic chi-square
+#'   distribution.
+#' @slot df A single integer for the degrees of freedom of the statistic.
+#' @slot pval A single numeric for the \eqn{p}-value of the statistic.
+#' @slot npar A single integer for the number of parameters.
+#' @slot weights A numeric vector of re-scaled weights used for model fitting.
+#' @slot data A numeric matrix for the data used for model fitting.
+#' @slot coefficients A numeric vector of the maximum empirical likelihood
+#'   estimates of the parameters.
+#' @slot method A single character for the method dispatch in internal
+#'   functions.
+#' @aliases EL
+#' @references Owen A (2001). Empirical Likelihood. Chapman & Hall/CRC.
+#'   \doi{10.1201/9781420036152}.
+#' @references Qin J, Lawless J (1994).
 #'   “Empirical Likelihood and General Estimating Equations.”
-#'   The Annals of Statistics 22 (1): 300–325. \doi{10.1214/aos/1176325370}.
+#'   The Annals of Statistics, 22(1), 300–325. \doi{10.1214/aos/1176325370}.
 #' @examples
 #' showClass("EL")
+#' @srrstats {G1.0} References are included throughout the package
+#'   documentation.
+#' @srrstats {G1.4} `roxygen2` is used to document all functions.
+#' @srrstats {G1.3} Statistical terminology is unambiguously defined throughout
+#'   the package documentation.
+#' @srrstats {RE1.4} Some of the core distributional assumptions are documented.
+#'   We note that these are not exhaustive and added the phrase "Under some
+#'   regularity conditions" instead. For more details, interested users are
+#'   expected to resort to published references. Additionally, violation of the
+#'   convex hull constraint is tested in `test/testthat/test-el_mean.R`.
 setClass("EL",
   slots = c(
     optim = "list", logp = "numeric", logl = "numeric", loglr = "numeric",
-    statistic = "numeric", df = "integer", pval = "numeric", npar = "integer",
-    weights = "numeric", data = "matrix", coefficients = "numeric",
-    method = "character"
+    statistic = "numeric", df = "integer", pval = "numeric", nobs = "integer",
+    npar = "integer", weights = "numeric", data = "ANY",
+    coefficients = "numeric", method = "character"
   ),
   prototype = list(
     optim = list(), logp = numeric(), logl = numeric(), loglr = numeric(),
     statistic = numeric(), df = 0L, pval = numeric(), npar = 0L,
-    weights = numeric(), data = matrix(NA_real_, nrow = 0L, ncol = 0L),
+    weights = numeric(), data = NULL,
     coefficients = numeric(), method = NA_character_
   )
 )
 
-#' S4 class \linkS4class{CEL}
+
+#' \linkS4class{CEL} class
 #'
 #' S4 class for constrained empirical likelihood. It inherits from
-#' \linkS4class{EL} class. Note that \code{optim} slot has constrained
-#' optimization results with respect to parameters, not the Lagrange multiplier.
+#' \linkS4class{EL} class. Note that `optim` slot has constrained optimization
+#' results with respect to parameters, not the Lagrange multiplier.
 #'
 #' @details Let \eqn{l(\theta)} denote the minus twice the empirical
 #'   log-likelihood ratio function. We consider a linear hypothesis of the form
@@ -95,8 +109,8 @@ setClass("EL",
 #'   computationally expensive since it implicitly involves the
 #'   evaluation step as described in \linkS4class{EL}. Further, depending on the
 #'   form of \eqn{g(X_i, \theta)} and the constraint, the optimization problem
-#'   can be nonconvex and have multiple local minima. For this reason,
-#'   \strong{melt} only considers linear hypotheses and performs local
+#'   can be nonconvex and have multiple local minima. For this reason, the
+#'   package \pkg{melt} only considers linear hypotheses and performs local
 #'   minimization of \eqn{l(\theta)} using projected gradient descent method.
 #'   With the orthogonal projection matrix \eqn{P} and a step size \eqn{\gamma},
 #'   the algorithm updates \eqn{\theta} as
@@ -107,77 +121,89 @@ setClass("EL",
 #'   \eqn{P \nabla l(\theta) = 0}, which is used as the stopping criterion.
 #' @slot optim A list with the following optimization results:
 #'   \itemize{
-#'   \item{\code{method } }{Character for method dispatch in internal
-#'   functions.}
-#'   \item{\code{par } }{Parameter value that minimizes the constrained
-#'   empirical likelihood.}
-#'   \item{\code{lambda } }{Lagrange multiplier of the dual problem.}
-#'   \item{\code{iterations } }{Number of iterations performed.}
-#'   \item{\code{convergence } }{Convergence status.}
+#'   \item{`par ` }{A numeric vector of the parameter value that minimizes the
+#'   empirical likelihood subject to the constraints.}
+#'   \item{`lambda ` }{A numeric vector of the Lagrange multipliers.}
+#'   \item{`iterations ` }{A single integer for the number of iterations
+#'   performed.}
+#'   \item{`convergence ` }{A single logical for the convergence status.}
 #'   }
-#' @slot logp Log probabilities obtained from constrained empirical likelihood.
-#' @slot logl Constrained empirical log-likelihood.
-#' @slot loglr Constrained empirical log-likelihood ratio.
-#' @slot statistic Minus twice the constrained empirical log-likelihood ratio
-#' statistic that has an asymptotic chi-square distribution.
-#' @slot df Degrees of freedom of the statistic.
-#' @slot pval \eqn{p}-value of the statistic.
-#' @slot npar Number of parameters.
-#' @slot weights Rescaled weights used for model fitting.
-#' @slot data Data matrix used for model fitting.
-#' @slot coefficients Maximum empirical likelihood estimates of the parameters.
-#' @slot method Character for method dispatch in internal functions.
-#' @references Adimari, Gianfranco, and Annamaria Guolo. 2010.
+#' @aliases CEL
+#' @references Adimari G, Guolo A (2010).
 #'   “A Note on the Asymptotic Behaviour of Empirical Likelihood Statistics.”
-#'   Statistical Methods & Applications 19 (4): 463–76.
+#'   Statistical Methods & Applications, 19(4), 463–476.
 #'   \doi{10.1007/s10260-010-0137-9}.
-#' @references Qin, Jing, and Jerry Lawless. 1995.
+#' @references Qin J, Lawless J (1995).
 #'   “Estimating Equations, Empirical Likelihood and Constraints on Parameters.”
-#'   Canadian Journal of Statistics 23 (2): 145–59. \doi{10.2307/3315441}.
+#'   Canadian Journal of Statistics, 23(2), 145–159. \doi{10.2307/3315441}.
 #' @examples
 #' showClass("CEL")
+#' @srrstats {G1.1} The package attempts the first implementation of the nested
+#'   bilevel optimization approach within R to compute constrained empirical
+#'   likelihood. The inner layer Newton-Raphson method for empirical likelihood
+#'   is written in C++, enabling faster computation than other routines written
+#'   in R.
 setClass("CEL", contains = "EL")
 
-#' S4 class \linkS4class{LM}
+
+#' \linkS4class{LM} class
 #'
 #' S4 class for linear models with empirical likelihood. It inherits from
 #' \linkS4class{CEL} class.
 #'
-#' @details If there is no intercept in a model, \code{optim}
-#' slot need to be understood in terms of \linkS4class{EL} class since
-#' constrained optimization is not involved in the overall test.
+#' @details If there is no intercept in a model, `optim` slot need to be
+#'   understood in terms of \linkS4class{EL} class since constrained
+#'   optimization is not involved in the overall test.
 #' @slot parTests A list with the test results for each parameter:
 #'   \itemize{
-#'   \item{\code{statistic } }{A numeric vector of chi-squared statistics.}
-#'   \item{\code{convergence } }{Convergence status of tests for each parameter.
-#'   }
+#'   \item{`statistic ` }{A numeric vector of the empirical likelihood
+#'   ratio statistics.}
+#'   \item{`convergence ` }{A logical vector of the convergence status of
+#'   tests for each parameter.}
 #'   }
 #' @slot misc A list with miscellaneous outputs from a model fitting function.
-#' They are used in other generics and methods.
+#'   They are used in other generics and methods.
+#' @aliases LM
 #' @examples
 #' showClass("LM")
-setClass("LM", contains = "CEL", slots = c(parTests = "list", misc = "list"))
+setClass("LM",
+  contains = "CEL",
+  slots = c(parTests = "list", call = "call", terms = "ANY", misc = "list")
+)
 
-#' S4 class \linkS4class{GLM}
+#' \linkS4class{GLM} class
 #'
 #' S4 class for generalized linear models with empirical likelihood. It inherits
 #' from \linkS4class{LM} class.
 #'
+#' @aliases GLM
 #' @examples
 #' showClass("GLM")
 setClass("GLM", contains = "LM")
 
-#' S4 class \linkS4class{ConfregEL}
+
+#' \linkS4class{SD} class
+#'
+#' S4 class for standard deviation. It inherits from \linkS4class{EL} class.
+#'
+#' @aliases SD
+#' @examples
+#' showClass("SD")
+setClass("SD", contains = "EL")
+
+
+#' \linkS4class{ConfregEL} class
 #'
 #' S4 class for confidence region.
 #'
 #' @slot points A numeric matrix with two columns for boundary points of a
 #'   confidence region.
 #' @slot estimates A numeric vector of length two for parameter estimates.
-#' @slot level A confidence level required.
-#' @slot cv A critical value for calibration of empirical likelihood ratio
-#'   statistic.
+#' @slot level A single numeric for the confidence level required.
+#' @slot cv A single numeric for the critical value for calibration of empirical
+#'   likelihood ratio statistic.
 #' @slot pnames A character vector of length two for the name of parameters.
+#' @aliases ConfregEL
 #' @examples
 #' showClass("ConfregEL")
 setClass("ConfregEL",
@@ -186,36 +212,141 @@ setClass("ConfregEL",
     pnames = "character"
   ),
   prototype = list(
-    points = NULL, estimates = NA_real_, level = NA_real_, cv = NA_real_,
-    pnames = NA_character_
+    points = NULL, estimates = NA_real_, cv = NA_real_, pnames = NA_character_
   )
 )
 
-#' S4 class \linkS4class{ELD}
+
+#' \linkS4class{ControlEL} class
+#'
+#' S4 class for computational details of empirical likelihood.
+#'
+#' @slot maxit A single integer for the maximum number of iterations for the
+#'   optimization with respect to \eqn{\theta}.
+#' @slot maxit_l A single integer for the maximum number of iterations for the
+#'   optimization with respect to \eqn{\lambda}.
+#' @slot tol A single numeric for the convergence tolerance denoted by
+#'   \eqn{\epsilon}. The iteration stops when
+#'   \deqn{\|P \nabla l(\theta^{(k)})\| < \epsilon.}
+#' @slot tol_l A single numeric for the relative convergence tolerance denoted
+#'   by \eqn{\delta}. The iteration stops when
+#'   \deqn{\|\lambda^{(k)} - \lambda^{(k - 1)}\| <
+#'   \delta\|\lambda^{(k - 1)}\| + \delta^2.}
+#' @slot step A single numeric for the step size \eqn{\gamma} for the projected
+#'   gradient descent method.
+#' @slot th A single numeric for the threshold for the negative empirical
+#'   log-likelihood ratio.
+#' @slot verbose A single logical for whether to print a message on the
+#'   convergence status.
+#' @slot keep_data A single logical for whether to
+#' @slot nthreads A single integer for the number of threads for parallel
+#'   computation via OpenMP (if available).
+#' @slot seed A single integer for the seed for random number generation.
+#' @slot b A single integer for the number of bootstrap replicates.
+#' @slot m A single integer for the number of Monte Carlo samples.
+#' @aliases ControlEL
+#' @seealso [el_control()]
+#' @examples
+#' showClass("ControlEL")
+setClass("ControlEL",
+  slots = c(
+    maxit = "integer", maxit_l = "integer", tol = "numeric", tol_l = "numeric",
+    step = "ANY", th = "ANY", verbose = "logical", keep_data = "logical",
+    nthreads = "integer", seed = "integer", b = "integer", m = "integer"
+  )
+)
+
+
+#' \linkS4class{ELD} class
 #'
 #' S4 class for empirical likelihood displacement.
 #'
 #' @slot eld A numeric vector of empirical likelihood displacement values.
+#' @aliases ELD
 #' @examples
 #' showClass("ELD")
 setClass("ELD", slots = c(eld = "numeric"))
 
-#' S4 class \linkS4class{SummaryLM}
+
+#' \linkS4class{ELT} class
+#'
+#' S4 class for empirical likelihood test.
+#'
+#' @slot optim A list with the optimization results.
+#' @slot alpha A single numeric for the significance level.
+#' @slot logl A single numeric for the (constrained) empirical log-likelihood.
+#' @slot loglr A single numeric for the (constrained) empirical log-likelihood
+#'   ratio.
+#' @slot statistic A single numeric for the minus twice the (constrained)
+#'   empirical log-likelihood ratio.
+#' @slot cv A single numeric for the critical value.
+#' @slot pval A single numeric for the \eqn{p}-value of the statistic.
+#' @slot calibrate A single character for the calibration method used.
+#' @aliases ELT
+#' @examples
+#' showClass("ELT")
+setClass("ELT",
+  slots = c(
+    optim = "list", alpha = "numeric", logl = "numeric", loglr = "numeric",
+    statistic = "numeric", cv = "numeric", pval = "numeric",
+    calibrate = "character"
+  )
+)
+
+
+#' \linkS4class{ELMT} class
+#'
+#' S4 class for empirical likelihood multiple tests.
+#'
+#' @slot alpha A single numeric for the overall significance level.
+#' @slot statistic A numeric vector for the minus twice the (constrained)
+#'   empirical log-likelihood ratios.
+#' @slot cv A single numeric for the multiplicity adjusted critical value.
+#' @slot pval A numeric vector for the multiplicity adjusted \eqn{p}-values.
+#' @slot calibrate A single character for the calibration method used.
+#' @aliases ELMT
+#' @examples
+#' showClass("ELMT")
+setClass("ELMT",
+  slots = c(
+    alpha = "numeric", statistic = "numeric", cv = "numeric", pval = "numeric",
+    calibrate = "character"
+  )
+)
+
+
+#' \linkS4class{logLikEL} class
+#'
+#' S4 class for empirical log-likelihood.
+#'
+#' @slot logLik A single numeric for the empirical log-likelihood.
+#' @slot df A single integer for the degrees of freedom or the number of
+#'   (estimated) parameters in the model.
+#' @aliases logLikEL
+#' @examples
+#' showClass("logLikEL")
+setClass("logLikEL", slots = c(logLik = "numeric", df = "integer"))
+
+
+#' \linkS4class{SummaryLM} class
 #'
 #' S4 class for a summary of \linkS4class{LM} objects.
 #'
-#' @slot statistic Minus twice the constrained empirical log-likelihood ratio
-#'   for the overall test of the model.
-#' @slot df Degrees of freedom of the statistic.
-#' @slot convergence Convergence status of the minimization.
+#' @slot statistic A single numeric for the minus twice the empirical
+#'   log-likelihood ratio for the overall test of the model.
+#' @slot df A single integer for the degrees of freedom of the statistic.
+#' @slot convergence A single logical for the convergence status of the
+#'   constrained minimization.
 #' @slot parMatrix A numeric matrix of the test results of the parameters.
-#' @slot weighted A logical for whether the given model is weighted or not.
-#' @slot na.action Information returned by \code{\link[stats]{model.frame}} on
-#'   the special handling of NAs.
+#' @slot weighted A single logical for whether the given model is weighted or
+#'   not.
+#' @slot na.action Information returned by [`model.frame`] on the special
+#'   handling of `NA`s.
 #' @slot call Matched call.
-#' @slot terms \code{\link[stats]{terms}} object used.
-#' @slot aliased Named logical vector showing if the original coefficients are
+#' @slot terms [`terms`] object used.
+#' @slot aliased A named logical vector showing if the original coefficients are
 #'   aliased.
+#' @aliases SummaryLM
 #' @examples
 #' showClass("SummaryLM")
 setClass("SummaryLM", slots = c(
@@ -223,60 +354,3 @@ setClass("SummaryLM", slots = c(
   parMatrix = "matrix", weighted = "logical", na.action = "ANY", call = "ANY",
   terms = "ANY", aliased = "logical"
 ))
-
-#' S4 class \linkS4class{ControlEL}
-#'
-#' S4 class for details of computation of empirical likelihood.
-#'
-#' @slot maxit Maximum number of iterations for the optimization with
-#'   respect to \eqn{\theta}.
-#' @slot maxit_l Maximum number of iterations for the optimization with
-#'   respect to \eqn{\lambda}.
-#' @slot tol Convergence tolerance denoted by \eqn{\epsilon}. The iteration
-#'   stops when
-#'   \deqn{\|P \nabla l(\theta^{(k)})\| < \epsilon.}
-#' @slot tol_l Relative convergence tolerance denoted by \eqn{\delta}. The
-#'   iteration stops when
-#'   \deqn{\|\lambda^{(k)} - \lambda^{(k - 1)}\| <
-#'   \delta\|\lambda^{(k - 1)}\| + \delta^2.}
-#' @slot step Step size \eqn{\gamma} for the projected gradient descent
-#'   method.
-#' @slot th Threshold for the negative empirical log-likelihood ratio value.
-#'   The iteration stops if the value exceeds the threshold. Defaults to
-#'   \code{NULL} and sets the threshold to \code{200 * d}, where \code{d}
-#'   corresponds to the degrees of freedom of the limiting chi-squared
-#'   distribution of the statistic.
-#' @slot nthreads Number of threads for parallel computation via OpenMP (if
-#'   available). Defaults to the half of the available threads. For better
-#'   performance, it is recommended to limit the number of threads to the
-#'   number of physical cores. Note that it only applies to the following
-#'   functions that involve multiple evaluations or minimizations:
-#'   \itemize{
-#'   \item{\code{\link{confint}}}
-#'   \item{\code{\link{confreg}}}
-#'   \item{\code{\link{el_lm}}}
-#'   \item{\code{\link{el_glm}}}
-#'   \item{\code{\link{eld}}}}
-#' @examples
-#' showClass("ControlEL")
-setClass("ControlEL",
-  slots = c(
-    maxit = "integer", maxit_l = "integer", tol = "numeric", tol_l = "numeric",
-    step = "ANY", th = "ANY", nthreads = "integer"
-  ),
-  prototype = list(
-    maxit = 200L, maxit_l = 50L, tol = 1e-06, tol_l = 1e-06,
-    step = NULL, th = NULL, nthreads = NULL
-  )
-)
-
-#' S4 class \linkS4class{logLikEL}
-#'
-#' S4 class for empirical log-likelihood.
-#'
-#' @slot logLik Empirical log-likelihood.
-#' @slot df Degrees of freedom or the number of (estimated) parameters in the
-#'   model.
-#' @examples
-#' showClass("logLikEL")
-setClass("logLikEL", slots = c(logLik = "numeric", df = "integer"))

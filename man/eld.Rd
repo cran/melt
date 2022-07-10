@@ -3,51 +3,58 @@
 \name{eld}
 \alias{eld}
 \alias{eld,EL-method}
+\alias{eld,GLM-method}
+\alias{eld,missing-method}
 \title{Empirical likelihood displacement}
 \usage{
 \S4method{eld}{EL}(object, control = el_control())
+
+\S4method{eld}{GLM}(object, control = el_control())
 }
 \arguments{
-\item{object}{A fitted \linkS4class{EL} object.}
+\item{object}{An object that inherit from \linkS4class{EL}, including
+\linkS4class{CEL}, \linkS4class{LM}, and \linkS4class{GLM}.}
 
-\item{control}{A list of control parameters set by \code{\link{el_control}}.}
+\item{control}{An object of class \linkS4class{ControlEL} constructed by
+\code{\link[=el_control]{el_control()}}.}
 }
 \value{
 An object of class \linkS4class{ELD}.
 }
 \description{
 Computes empirical likelihood displacement for model diagnostics and outlier
-  detection.
+detection.
 }
 \details{
 Let \eqn{L(\theta)} be the empirical log-likelihood function based
-  on the full sample with \eqn{n} observations. The maximum empirical
-  likelihood estimate is denoted by \eqn{\hat{\theta}}. Consider a reduced
-  sample with the \eqn{i}th observation deleted and the corresponding
-  estimate \eqn{\hat{\theta}_{(i)}}. The empirical likelihood displacement is
-  defined by
-  \deqn{\textnormal{ELD}_i = 2\{L(\hat{\theta}) - L(\hat{\theta}_{(i)})\}.}
-  If \eqn{\textnormal{ELD}_i } is large, then the \eqn{i}th observation is an
-  influential point and can be inspected as a possible outlier. \code{eld}
-  computes \eqn{\textnormal{ELD}_i } for \eqn{i = 1, \dots, n }.
+on the full sample with \eqn{n} observations. The maximum empirical
+likelihood estimate is denoted by \eqn{\hat{\theta}}. Consider a reduced
+sample with the \eqn{i}th observation deleted and the corresponding
+estimate \eqn{\hat{\theta}_{(i)}}. The empirical likelihood displacement is
+defined by
+\deqn{\textnormal{ELD}_i = 2\{L(\hat{\theta}) - L(\hat{\theta}_{(i)})\}.}
+If \eqn{\textnormal{ELD}_i } is large, then the \eqn{i}th observation is an
+influential point and can be inspected as a possible outlier. \code{eld}
+computes \eqn{\textnormal{ELD}_i } for \eqn{i = 1, \dots, n }.
 }
 \examples{
-x <- rnorm(10L)
-y <- 10
-fit <- el_mean(0, c(x, y))
-eld(fit)
+data("precip")
+fit <- el_mean(precip, par = 30)
+eld <- eld(fit)
+plot(eld)
 }
 \references{
-Lazar, Nicole A. 2005. “Assessing the Effect of Individual Data
-  Points on Inference From Empirical Likelihood.” Journal of Computational
-  and Graphical Statistics 14 (3): 626–42.
-  \doi{10.1198/106186005X59568}.
+Lazar NA (2005).
+“Assessing the Effect of Individual Data Points on Inference From Empirical
+Likelihood.”
+Journal of Computational and Graphical Statistics, 14(3), 626–642.
+\doi{10.1198/106186005X59568}.
 
-Zhu, H., J. G. Ibrahim, N. Tang, and H. Zhang. 2008. “Diagnostic
-  Measures for Empirical Likelihood of General Estimating Equations.”
-  Biometrika 95 (2): 489–507.
-  \doi{10.1093/biomet/asm094}.
+Zhu H, Ibrahim JG, Tang N, Zhang H (2008).
+“Diagnostic Measures for Empirical Likelihood of General Estimating
+Equations.” Biometrika, 95(2), 489–507.
+\doi{10.1093/biomet/asm094}.
 }
 \seealso{
-\link{el_control}, \link{el_eval}, \link{plot}
+\code{\link[=el_control]{el_control()}}, \code{\link[=el_eval]{el_eval()}}, \code{\link[=plot]{plot()}}
 }

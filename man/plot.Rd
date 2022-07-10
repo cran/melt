@@ -15,10 +15,10 @@
 
 \item{y}{Not used.}
 
-\item{...}{Further graphical parameters (see \code{\link[graphics]{par}}).}
+\item{...}{Further graphical parameters (see \code{\link{par}}).}
 }
 \description{
-Provides plot methods for objects that inherit from class \linkS4class{EL}.
+Provides plot methods for objects.
 }
 \section{Methods (by class)}{
 \itemize{
@@ -29,6 +29,19 @@ parameters.
 observation index.
 }}
 
+\examples{
+## Model
+data("mtcars")
+fit <- el_lm(hp ~ wt, data = mtcars)
+
+## Confidence region
+out1 <- confreg(fit, npoints = 500)
+plot(out1)
+
+## Empirical likelihood displacement
+out2 <- eld(fit)
+plot(out2)
+}
 \seealso{
-\link{confreg}, \link{eld}
+\code{\link[=confreg]{confreg()}}, \code{\link[=eld]{eld()}}
 }

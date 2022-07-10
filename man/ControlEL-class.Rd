@@ -3,50 +3,53 @@
 \docType{class}
 \name{ControlEL-class}
 \alias{ControlEL-class}
-\title{S4 class \linkS4class{ControlEL}}
+\alias{ControlEL}
+\title{\linkS4class{ControlEL} class}
 \description{
-S4 class for details of computation of empirical likelihood.
+S4 class for computational details of empirical likelihood.
 }
 \section{Slots}{
 
 \describe{
-\item{\code{maxit}}{Maximum number of iterations for the optimization with
-respect to \eqn{\theta}.}
+\item{\code{maxit}}{A single integer for the maximum number of iterations for the
+optimization with respect to \eqn{\theta}.}
 
-\item{\code{maxit_l}}{Maximum number of iterations for the optimization with
-respect to \eqn{\lambda}.}
+\item{\code{maxit_l}}{A single integer for the maximum number of iterations for the
+optimization with respect to \eqn{\lambda}.}
 
-\item{\code{tol}}{Convergence tolerance denoted by \eqn{\epsilon}. The iteration
-stops when
+\item{\code{tol}}{A single numeric for the convergence tolerance denoted by
+\eqn{\epsilon}. The iteration stops when
 \deqn{\|P \nabla l(\theta^{(k)})\| < \epsilon.}}
 
-\item{\code{tol_l}}{Relative convergence tolerance denoted by \eqn{\delta}. The
-iteration stops when
+\item{\code{tol_l}}{A single numeric for the relative convergence tolerance denoted
+by \eqn{\delta}. The iteration stops when
 \deqn{\|\lambda^{(k)} - \lambda^{(k - 1)}\| <
-\delta\|\lambda^{(k - 1)}\| + \delta^2.}}
+  \delta\|\lambda^{(k - 1)}\| + \delta^2.}}
 
-\item{\code{step}}{Step size \eqn{\gamma} for the projected gradient descent
-method.}
+\item{\code{step}}{A single numeric for the step size \eqn{\gamma} for the projected
+gradient descent method.}
 
-\item{\code{th}}{Threshold for the negative empirical log-likelihood ratio value.
-The iteration stops if the value exceeds the threshold. Defaults to
-\code{NULL} and sets the threshold to \code{200 * d}, where \code{d}
-corresponds to the degrees of freedom of the limiting chi-squared
-distribution of the statistic.}
+\item{\code{th}}{A single numeric for the threshold for the negative empirical
+log-likelihood ratio.}
 
-\item{\code{nthreads}}{Number of threads for parallel computation via OpenMP (if
-available). Defaults to the half of the available threads. For better
-performance, it is recommended to limit the number of threads to the
-number of physical cores. Note that it only applies to the following
-functions that involve multiple evaluations or minimizations:
-\itemize{
-\item{\code{\link{confint}}}
-\item{\code{\link{confreg}}}
-\item{\code{\link{el_lm}}}
-\item{\code{\link{el_glm}}}
-\item{\code{\link{eld}}}}}
+\item{\code{verbose}}{A single logical for whether to print a message on the
+convergence status.}
+
+\item{\code{keep_data}}{A single logical for whether to}
+
+\item{\code{nthreads}}{A single integer for the number of threads for parallel
+computation via OpenMP (if available).}
+
+\item{\code{seed}}{A single integer for the seed for random number generation.}
+
+\item{\code{b}}{A single integer for the number of bootstrap replicates.}
+
+\item{\code{m}}{A single integer for the number of Monte Carlo samples.}
 }}
 
 \examples{
 showClass("ControlEL")
+}
+\seealso{
+\code{\link[=el_control]{el_control()}}
 }

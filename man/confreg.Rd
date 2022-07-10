@@ -9,46 +9,53 @@
   object,
   parm,
   level = 0.95,
-  cv = qchisq(level, 2L),
+  cv = NULL,
   npoints = 50L,
   control = el_control()
 )
 }
 \arguments{
-\item{object}{A fitted \linkS4class{EL} object.}
+\item{object}{An object that inherit from \linkS4class{EL}, including
+\linkS4class{CEL}, \linkS4class{LM}, and \linkS4class{GLM}.}
 
 \item{parm}{A specification of which parameters are to be given a confidence
 region, either a vector of numbers or a vector of names. It should be a
 vector of length two of the form \code{c(x, y)}. If missing, the first two
 parameter in \code{object} are considered.}
 
-\item{level}{A confidence level required. Defaults to \code{0.95}.}
+\item{level}{A single numeric for the confidence level required. Defaults to
+\code{0.95}. It is ignored if \code{cv} is non-\code{NULL}.}
 
-\item{cv}{A critical value for calibration of empirical likelihood ratio
-statistic. Defaults to \code{qchisq(level, 2L)}.}
+\item{cv}{A single numeric for the critical value for calibration of
+empirical likelihood ratio statistic. Defaults to NULL and set to
+\code{qchisq(level, 2L)}. It must be compatible with the \code{th} value in
+\code{control}.}
 
-\item{npoints}{The number of boundary points to compute. Defaults to
-\code{50}.}
+\item{npoints}{A single integer for the number of boundary points to compute.
+Defaults to \code{50}.}
 
-\item{control}{A list of control parameters set by \code{\link{el_control}}.}
+\item{control}{An object of class \linkS4class{ControlEL} constructed by
+\code{\link[=el_control]{el_control()}}.}
 }
 \value{
 An object of class \linkS4class{ConfregEL}.
 }
 \description{
 Computes boundary points of a two-dimensional confidence region for model
-  parameters.
+parameters.
 }
 \examples{
-par <- c(0, 0, 0)
-x <- matrix(rnorm(90), ncol = 3)
-fit <- el_mean(par, x)
-confreg(fit, parm = c(1, 3))
+data("mtcars")
+fit <- el_lm(mpg ~ wt + qsec, data = mtcars)
+cr <- confreg(fit, parm = c(2, 3), cv = qchisq(0.90, 2))
+plot(cr)
 }
 \references{
-Owen, Art. 1990. “Empirical Likelihood Ratio Confidence Regions.”
-  The Annals of Statistics 18 (1): 90–120. \doi{10.1214/aos/1176347494}.
+Owen A (1990).
+“Empirical Likelihood Ratio Confidence Regions.”
+The Annals of Statistics, 18(1), 90–120.
+\doi{10.1214/aos/1176347494}.
 }
 \seealso{
-\link{confint}, \link{el_control}, \link{lht}, \link{plot}
+\code{\link[=confint]{confint()}}, \code{\link[=el_control]{el_control()}}, \code{\link[=elt]{elt()}}, \code{\link[=plot]{plot()}}
 }

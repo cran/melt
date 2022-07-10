@@ -8,14 +8,19 @@
 \S4method{coef}{EL}(object, ...)
 }
 \arguments{
-\item{object}{A fitted \linkS4class{EL} object.}
+\item{object}{An object that inherit from \linkS4class{EL}, including
+\linkS4class{CEL}, \linkS4class{LM}, and \linkS4class{GLM}.}
 
-\item{...}{Not used.}
+\item{...}{Further arguments passed to methods.}
+}
+\value{
+A numeric vector of the maximum empirical likelihood estimates.
 }
 \description{
 Extracts maximum empirical likelihood estimates from a model.
 }
 \examples{
-fit <- el_lm(formula = mpg ~ wt, data = mtcars)
+data("mtcars")
+fit <- el_lm(mpg ~ wt, data = mtcars)
 coef(fit)
 }

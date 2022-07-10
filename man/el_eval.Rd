@@ -8,56 +8,58 @@ el_eval(g, weights = NULL, control = el_control())
 }
 \arguments{
 \item{g}{A numeric matrix, or an object that can be coerced to a numeric
-matrix. Each row corresponds to an observation of an estimating
-function.}
+matrix. Each row corresponds to an observation of an estimating function.
+The number of rows must be greater than the number of columns.}
 
 \item{weights}{An optional numeric vector of weights to be used in the
-fitting process. Defaults to \code{NULL}, corresponding to identical
-weights. If non-\code{NULL}, weighted empirical likelihood is computed.}
+fitting process. The length of the vector must be the same as the number of
+rows in \code{g}. Defaults to \code{NULL}, corresponding to identical weights. If
+non-\code{NULL}, weighted empirical likelihood is computed.}
 
-\item{control}{A list of control parameters set by \code{\link{el_control}}.}
+\item{control}{An object of class \linkS4class{ControlEL} constructed by
+\code{\link[=el_control]{el_control()}}.}
 }
 \value{
 A list with the following components:
-  \item{optim}{A list with the following optimization results:
-    \itemize{
-    \item{\code{lambda } }{Lagrange multiplier of the dual problem.}
-    \item{\code{iterations } }{Number of iterations performed.}
-    \item{\code{convergence } }{Convergence status.}
-    }
-  }
-  \item{logp}{Log probabilities obtained from empirical likelihood.}
-  \item{logl}{Empirical log-likelihood.}
-  \item{loglr}{Empirical log-likelihood ratio.}
-  \item{statistic}{Minus twice the empirical log-likelihood ratio statistic that
-  has an asymptotic chi-square distribution.}
-  \item{df}{Degrees of freedom of the statistic.}
-  \item{pval}{\eqn{p}-value of the statistic.}
-  \item{npar}{Number of parameters.}
-  \item{weights}{Rescaled weights used for model fitting.}
+\item{optim}{A list with the following optimization results:
+\itemize{
+\item{\code{lambda } }{Lagrange multiplier of the dual problem.}
+\item{\code{iterations } }{Number of iterations performed.}
+\item{\code{convergence } }{Convergence status.}
+}
+}
+\item{logp}{Log probabilities obtained from empirical likelihood.}
+\item{logl}{Empirical log-likelihood.}
+\item{loglr}{Empirical log-likelihood ratio.}
+\item{statistic}{Minus twice the empirical log-likelihood ratio statistic
+that has an asymptotic chi-square distribution.}
+\item{df}{Degrees of freedom of the statistic.}
+\item{pval}{\eqn{p}-value of the statistic.}
+\item{npar}{Number of parameters.}
+\item{weights}{Re-scaled weights used for model fitting.}
 }
 \description{
 Computes empirical likelihood with general estimating functions.
 }
 \details{
 \code{el_eval} evaluates empirical likelihood with a \eqn{n} by
-  \eqn{p} numeric matrix argument \code{g}, whose \eqn{i}th row is
-  \eqn{g(X_i, \theta)}. Since the estimating function can be arbitrary,
-  \code{el_eval} does not return an object of class \linkS4class{EL}, and the
-  associated generics and methods are not applicable.
+\eqn{p} numeric matrix argument \code{g}, whose \eqn{i}th row is
+\eqn{g(X_i, \theta)}. Since the estimating function can be arbitrary,
+\code{el_eval} does not return an object of class \linkS4class{EL}, and the
+associated generics and methods are not applicable.
 }
 \examples{
-# test for variance with known mean
-x <- rnorm(100L)
-sigma <- 1
-g <- x^2 - sigma^2
-el_eval(g)
+set.seed(3271)
+x <- rnorm(50)
+par <- 0
+g <- x - par
+el_eval(g, weights = rep(c(1, 2), each = 25))
 }
 \references{
-Qin, Jin, and Jerry Lawless. 1994.
-  “Empirical Likelihood and General Estimating Equations.”
-  The Annals of Statistics 22 (1): 300–325. \doi{10.1214/aos/1176325370}.
+Qin J, Lawless J (1994).
+“Empirical Likelihood and General Estimating Equations.”
+The Annals of Statistics, 22(1), 300–325. \doi{10.1214/aos/1176325370}.
 }
 \seealso{
-\link{el_control}
+\code{\link[=el_control]{el_control()}}
 }

@@ -4,38 +4,27 @@
 \alias{el_lm}
 \title{Empirical likelihood for linear models}
 \usage{
-el_lm(
-  formula,
-  data,
-  weights = NULL,
-  na.action,
-  control = el_control(),
-  model = TRUE,
-  ...
-)
+el_lm(formula, data, weights = NULL, na.action, control = el_control(), ...)
 }
 \arguments{
-\item{formula}{An object of class \code{"\link[stats]{formula}"} (or one that
-can be coerced to that class): a symbolic description of the model to be
-fitted.}
+\item{formula}{An object of class \code{\link{formula}} (or one that can be coerced to
+that class) for a symbolic description of the model to be fitted.}
 
 \item{data}{An optional data frame, list or environment (or object coercible
-by \code{\link[base]{as.data.frame}} to a data frame) containing the
-variables in the formula. If not found in data, the variables are taken
-from \code{environment(formula)}.}
+by \code{\link[=as.data.frame]{as.data.frame()}} to a data frame) containing the variables in
+\code{formula}. If not found in data, the variables are taken from
+\code{environment(formula)}.}
 
 \item{weights}{An optional numeric vector of weights to be used in the
-fitting process. Defaults to \code{NULL}, corresponding to identical
-weights. If non-\code{NULL}, weighted empirical likelihood is computed.}
+fitting process. Defaults to \code{NULL}, corresponding to identical weights. If
+non-\code{NULL}, weighted empirical likelihood is computed.}
 
 \item{na.action}{A function which indicates what should happen when the data
 contain \code{NA}s. The default is set by the \code{na.action} setting of
-\code{\link[base]{options}}, and is \code{na.fail} if that is unset.}
+\code{\link{options}}, and is \code{na.fail} if that is unset.}
 
-\item{control}{A list of control parameters set by \code{\link{el_control}}.}
-
-\item{model}{A logical. If \code{TRUE} the data matrix used for fitting is
-returned.}
+\item{control}{An object of class \linkS4class{ControlEL} constructed by
+\code{\link[=el_control]{el_control()}}.}
 
 \item{...}{Additional arguments to be passed to the low level regression
 fitting functions. See ‘Details’.}
@@ -48,38 +37,49 @@ Fits a linear model with empirical likelihood.
 }
 \details{
 Suppose that we observe \eqn{n} independent random variables
-  \eqn{(X_i, Y_i)} from a common distribution, where \eqn{X_i} is the
-  \eqn{p}-dimensional covariate (including the intercept if any) and
-  \eqn{Y_i} is the response. We consider the following linear regression
-  model:
-  \deqn{Y_i = X_i^\top \theta + \epsilon_i,}
-  where \eqn{\theta = (\theta_0, \dots, \theta_{p-1})} is an unknown
-  \eqn{p}-dimensional parameter and the errors \eqn{\epsilon_i} are
-  independent random variables that satisfy
-  \eqn{\textnormal{E}(\epsilon_i | X_i)} = 0. We assume that the errors have
-  finite conditional variance. Then the least square estimator of \eqn{\theta}
-  solves the following estimating equation:
-  \deqn{\sum_{i = 1}^n(Y_i - X_i^\top \theta)X_i = 0.}
-  \code{\link{el_lm}} first computes the parameter estimates by calling
-  \code{\link[stats]{lm.fit}} (with \code{...} if any) since the maximum
-  empirical likelihood estimator is the same as the least square estimator in
-  our model. Next, it performs hypothesis tests based on asymptotic
-  chi-squared distribution of empirical likelihood ratio statistics. Included
-  in the tests are the overall test with
-  \deqn{H_0: \theta_1 = \theta_2 = \cdots = \theta_{p-1} = 0,}
-  and the tests for each parameter with
-  \deqn{H_{0j}: \theta_j = 0,\ j = 0, \dots, p-1.}
-  The test results are returned as \code{optim} and \code{parTests},
-  respectively.
+\eqn{(X_i, Y_i)} from a common distribution, where \eqn{X_i} is the
+\eqn{p}-dimensional covariate (including the intercept if any) and
+\eqn{Y_i} is the response. We consider the following linear regression
+model:
+\deqn{Y_i = X_i^\top \theta + \epsilon_i,}
+where \eqn{\theta = (\theta_0, \dots, \theta_{p-1})} is an unknown
+\eqn{p}-dimensional parameter and the errors \eqn{\epsilon_i} are
+independent random variables that satisfy
+\eqn{\textnormal{E}(\epsilon_i | X_i)} = 0. We assume that the errors have
+finite conditional variance. Then the least square estimator of
+\eqn{\theta} solves the following estimating equation:
+\deqn{\sum_{i = 1}^n(Y_i - X_i^\top \theta)X_i = 0.}
+\code{\link[=el_lm]{el_lm()}} first computes the parameter estimates by calling \code{\link[=lm.fit]{lm.fit()}}
+(with \code{...} if any) with the \code{model.frame} and \code{model.matrix} obtained from
+the \code{formula}. Note that the maximum empirical likelihood estimator is the
+same as the least square estimator in our model. Next, it performs
+hypothesis tests based on an asymptotic chi-squared distribution of
+empirical likelihood ratio statistics. Included in the tests are overall
+test with
+\deqn{H_0: \theta_1 = \theta_2 = \cdots = \theta_{p-1} = 0,}
+and significance tests for each parameter with
+\deqn{H_{0j}: \theta_j = 0,\ j = 0, \dots, p-1.}
+The test results are returned as \code{optim} and \code{parTests}, respectively.
 }
 \examples{
-fit <- el_lm(mpg ~ wt, mtcars)
+set.seed(5649)
+df <- data.frame(y = rnorm(50), x = rnorm(50))
+fit <- el_lm(y ~ x, df)
 summary(fit)
+
+fit2 <- el_lm(y ~ x, df, weights = rep(c(1, 2), each = 25))
+summary(fit2)
+
+df[1, 2] <- NA
+fit3 <- el_lm(y ~ x, df, na.action = na.omit)
+summary(fit3)
 }
 \references{
-Owen, Art. 1991. “Empirical Likelihood for Linear Models.”
-  The Annals of Statistics 19 (4): 1725–47. \doi{10.1214/aos/1176348368}.
+Owen A (1991).
+“Empirical Likelihood for Linear Models.”
+The Annals of Statistics, 19(4), 1725–1747.
+\doi{10.1214/aos/1176348368}.
 }
 \seealso{
-\link{el_control}, \link{el_glm}, \link{lht}
+\code{\link[=el_control]{el_control()}}, \code{\link[=el_glm]{el_glm()}}, \code{\link[=elt]{elt()}}
 }

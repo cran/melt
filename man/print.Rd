@@ -5,6 +5,8 @@
 \alias{print,EL-method}
 \alias{print,SummaryLM-method}
 \alias{print,logLikEL-method}
+\alias{print,ELMT-method}
+\alias{print,ELT-method}
 \title{Print methods}
 \usage{
 \S4method{print}{EL}(x, digits = max(3L, getOption("digits") - 3L), ...)
@@ -17,18 +19,32 @@
 )
 
 \S4method{print}{logLikEL}(x, digits = getOption("digits"), ...)
+
+\S4method{print}{ELMT}(
+  x,
+  digits = getOption("digits"),
+  signif.stars = getOption("show.signif.stars"),
+  ...
+)
+
+\S4method{print}{ELT}(x, digits = getOption("digits"), ...)
 }
 \arguments{
 \item{x}{An object to be printed.}
 
-\item{...}{Further arguments passed to other methods.}
+\item{...}{Further arguments passed to methods.}
 
-\item{digits}{The number of significant digits to be passed to
-\code{\link[base]{format}}.}
+\item{digits}{A single integer for the number of significant digits to be
+passed to \code{\link[=format]{format()}}.}
 
-\item{signif.stars}{Logical. If \code{TRUE}, ‘significance stars’ are printed
-for each coefficient.}
+\item{signif.stars}{A single logical. If \code{TRUE}, ‘significance stars’
+are printed for each parameter.}
 }
 \description{
-Provides print methods for objects that inherit from class \linkS4class{EL}.
+Provides print methods for objects.
+}
+\examples{
+data("precip")
+fit <- el_mean(precip, par = 40)
+print(fit)
 }

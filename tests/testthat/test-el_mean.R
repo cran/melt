@@ -1,120 +1,96 @@
-test_that("convergence check", {
-  skip_on_os("windows", arch = "i386")
-  x <- c(-1.5, 1.5, rnorm(10))
-  grid <- seq(-1, 1, length.out = 1000)
-  optcfg <- el_control(maxit_l = 200L, tol_l = 1e-08, th = 1e+10)
-  conv <- function(par) {
-    el_mean(par, x, control = optcfg)@optim$convergence
-  }
-  expect_true(all(vapply(grid, conv, FUN.VALUE = logical(1))))
+test_that("Invalid `x`.", {
+  expect_error(el_mean(c(1, Inf), par = 0))
+  expect_error(el_mean(10, 0))
+  expect_error(el_mean(c(1, 1), par = 1))
+  expect_error(el_mean(matrix(c(1, 1, 2, 2), ncol = 2), par = c(0, 0)))
+  expect_error(el_mean(matrix(c(1, 1, 2, 2), ncol = 2),
+    par = c(0, 0),
+    weights = c(1, 2)
+  ))
 })
 
-test_that("probabilities add up to 1", {
-  x <- rnorm(10)
-  par <- runif(1, min(x), max(x))
-  optcfg <- el_control(maxit_l = 200L, tol_l = 1e-08, th = 1e+10)
-  fit <- el_mean(par, x, control = optcfg)
+test_that("Invalid `par`.", {
+  x <- sleep$extra
+  expect_error(el_mean(x, par = NA))
+  expect_error(el_mean(x, par = NULL))
+  expect_error(el_mean(x, par = Inf))
+  expect_error(el_mean(x, par = NaN))
+  expect_error(el_mean(x, par = c(0, 0)))
+})
+
+test_that("Convergence check.", {
+  x <- women$weight
+  grid <- seq(120, 160, length.out = 1000)
+  expect_true(all(vapply(grid, function(par) {
+    conv(el_mean(x, par))
+  },
+  FUN.VALUE = logical(1)
+  )))
+})
+
+test_that("Probabilities add up to 1.", {
+  x <- women$height
+  w <- women$weight
+  fit <- el_mean(x, par = 60)
   expect_output(print(fit))
   expect_equal(sum(exp(fit@logp)), 1, tolerance = 1e-07)
+  fit2 <- el_mean(x, par = 60, weights = w)
+  expect_equal(sum(exp(fit2@logp)), 1, tolerance = 1e-07)
 })
 
-test_that("probabilities add up to 1 (weighted)", {
-  x <- rnorm(10)
-  par <- runif(1, min(x), max(x))
-  w <- 1 + runif(10, min = -0.5, max = 0.5)
-  optcfg <- el_control(maxit_l = 200L, tol_l = 1e-08, th = 1e+10)
-  fit <- el_mean(par, x, weights = w, optcfg)
-  expect_equal(sum(exp(fit@logp)), 1, tolerance = 1e-7)
+test_that("Identical weights means no weights.", {
+  x <- women$height
+  fit <- el_mean(x, par = 60)
+  fit2 <- el_mean(x, par = 60, weights = rep(0.5, length(x)))
+  fit2@weights <- numeric()
+  expect_equal(fit, fit2)
 })
 
-test_that("identical weights == no weights", {
-  skip_on_os("windows", arch = "i386")
-  x <- rnorm(10)
-  par <- runif(1, min(x), max(x))
-  w <- rep(runif(1), length(x))
-  optcfg <- el_control(maxit_l = 200L, tol_l = 1e-08, th = 1e+10)
-  a1 <- el_mean(par, x, control = optcfg)
-  a2 <- el_mean(par, x, weights = w, control = optcfg)
-  a2@weights <- a1@weights
-  expect_equal(a1, a2)
+test_that("Conversion between `loglik` and `loglr`.", {
+  x <- women$height
+  n <- length(x)
+  fit <- el_mean(x, par = 60)
+  expect_equal(fit@logl + n * log(n), logLR(fit))
+  fit2 <- el_mean(x, par = 60, weights = women$weight)
+  w <- weights(fit2)
+  expect_equal(fit2@logl + sum(w * (log(n) - log(w))), logLR(fit2))
 })
 
-test_that("loglik to loglr", {
-  skip_on_os("windows", arch = "i386")
-  n <- 10
-  x <- rnorm(n)
-  par <- runif(1, min(x), max(x))
-  optcfg <- el_control(maxit_l = 200L, tol_l = 1e-08, th = 1e+10)
-  fit <- el_mean(par, x, control = optcfg)
-  expect_equal(fit@logl + n * log(n), fit@loglr)
+test_that("`verbose` == TRUE in `el_control()`.", {
+  x <- women$height
+  expect_message(el_mean(x, par = 60, control = el_control(verbose = TRUE)))
 })
 
-test_that("loglik to loglr (weighted)", {
-  skip_on_os("windows", arch = "i386")
-  n <- 10
-  x <- rnorm(n)
-  par <- runif(1, min(x), max(x))
-  w <- 1 + runif(n, min = -0.5, max = 0.5)
-  optcfg <- el_control(maxit_l = 200L, tol_l = 1e-08, th = 1e+10)
-  fit <- el_mean(par, x, weights = w, control = optcfg)
-  w <- fit@weights
-  expect_equal(fit@logl + sum(w * (log(n) - log(w))), fit@loglr)
+test_that("`conv()` methods.", {
+  x <- women$height
+  fit <- el_mean(x, par = 60)
+  expect_true(conv(fit))
 })
 
-test_that("non-full rank", {
-  skip_on_os("windows", arch = "i386")
-  x <- matrix(c(1, 1, 2, 2), ncol = 2)
-  w <- c(1, 2)
-  par <- c(0, 0)
-  optcfg <- el_control(maxit_l = 20L, tol_l = 1e-08, th = 1e+10)
-  expect_error(el_mean(par, x, control = optcfg))
-  expect_error(el_mean(par, x, weights = w, control = optcfg))
+#' @srrstats {G5.7} Larger `tol_l` decreases the number of iterations for
+#'   convergence in `el_mean()`.
+test_that("Larger `tol_l` decreases iterations for convergence.", {
+  x <- women$height
+  fit <- el_mean(x, par = 60, control = el_control(tol_l = 1e-08))
+  fit2 <- el_mean(x, par = 60, control = el_control(tol_l = 1e-02))
+  expect_gte(fit@optim$iterations, fit2@optim$iterations)
 })
 
-test_that("invalid 'x", {
-  skip_on_os("windows", arch = "i386")
-  par <- 0
-  optcfg <- el_control(maxit_l = 200L, tol_l = 1e-08, th = 1e+10)
-  expect_error(el_mean(par, c(1, Inf), control = optcfg))
-  expect_error(el_mean(par, rnorm(1), control = optcfg))
+#' @srrstats {G5.9, G5.9a} Adding trivial noise does not change the overall
+#'   optimization results.
+test_that("Noise susceptibility tests.", {
+  x <- women$height
+  fit <- el_mean(x, par = 60)
+  fit2 <- el_mean(x, par = 60 + .Machine$double.eps)
+  expect_equal(fit@optim, fit2@optim)
 })
 
-test_that("invalid 'par", {
-  skip_on_os("windows", arch = "i386")
-  x <- matrix(c(1, 1, 2, 2), ncol = 2L)
-  par <- 0
-  optcfg <- el_control(maxit_l = 200L, tol_l = 1e-08, th = 1e+10)
-  expect_error(el_mean(par, x, control = optcfg))
-  expect_error(el_mean(NA, rnorm(10), control = optcfg))
-  expect_error(el_mean(NULL, rnorm(10), control = optcfg))
-  expect_error(el_mean(Inf, rnorm(10), control = optcfg))
-  expect_error(el_mean(NaN, rnorm(10), control = optcfg))
-  x <- rnorm(10)
-  par <- c(0, 0)
-  expect_error(el_mean(par, x, control = optcfg))
-  expect_error(el_mean(0, x, control = list(maxit = 200)))
-})
-
-test_that("identical results for repeated executions", {
-  n <- 100
-  w <- 1 + runif(n, min = -0.5, max = 0.5)
-  p <- 2
-  par <- rnorm(p)
-  x <- matrix(rnorm(n * p), ncol = p)
-  fit1 <- el_mean(par, x, control = el_control(th = 1e+10))
-  fit2 <- el_mean(par, x, control = el_control(th = 1e+10))
-  expect_equal(fit1, fit2)
-
-  wfit1 <- el_mean(par, x, weights = w, control = el_control(th = 1e+10))
-  wfit2 <- el_mean(par, x, weights = w, control = el_control(th = 1e+10))
-  expect_equal(wfit1, wfit2)
-
-  lhs <- c(1, 0)
-  lht1 <- lht(fit1, lhs = lhs)
-  lht2 <- lht(fit2, lhs = lhs)
-  expect_equal(lht1, lht2)
-
-  lht3 <- lht(wfit1, lhs = lhs)
-  lht4 <- lht(wfit2, lhs = lhs)
-  expect_equal(lht3, lht4)
+#' @srrstats {RE1.4} Violation of the convex hull constraint is tested.
+test_that("Convex hull constraint violated.", {
+  x <- women$weight
+  grid <- seq(10, 50, length.out = 1000)
+  conv <- function(par) {
+    el_mean(x, par)@optim$convergence
+  }
+  expect_false(any(vapply(grid, conv, FUN.VALUE = logical(1))))
 })

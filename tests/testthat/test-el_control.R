@@ -1,5 +1,4 @@
-test_that("invalid control parameters", {
-  expect_error(el_control(eee = 10))
+test_that("Invalid `control`.", {
   expect_error(el_control(maxit = NA))
   expect_error(el_control(maxit = 0.1))
   expect_error(el_control(maxit_l = NA))
@@ -8,8 +7,12 @@ test_that("invalid control parameters", {
   expect_error(el_control(tol = -1))
   expect_error(el_control(tol_l = Inf))
   expect_error(el_control(tol_l = -1))
+  expect_error(el_control(step = Inf))
+  expect_error(el_control(step = -1))
   expect_error(el_control(th = Inf))
   expect_error(el_control(th = -10))
+  expect_error(el_control(verbose = "TRUE"))
+  expect_error(el_control(keep_data = c(TRUE, TRUE)))
   expect_error(el_control(nthreads = c(10, 20)))
   expect_warning(el_control(nthreads = 0))
   expect_warning(el_control(nthreads = .Machine$integer.max))

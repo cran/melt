@@ -3,7 +3,8 @@
 \docType{class}
 \name{ConfregEL-class}
 \alias{ConfregEL-class}
-\title{S4 class \linkS4class{ConfregEL}}
+\alias{ConfregEL}
+\title{\linkS4class{ConfregEL} class}
 \description{
 S4 class for confidence region.
 }
@@ -15,10 +16,10 @@ confidence region.}
 
 \item{\code{estimates}}{A numeric vector of length two for parameter estimates.}
 
-\item{\code{level}}{A confidence level required.}
+\item{\code{level}}{A single numeric for the confidence level required.}
 
-\item{\code{cv}}{A critical value for calibration of empirical likelihood ratio
-statistic.}
+\item{\code{cv}}{A single numeric for the critical value for calibration of empirical
+likelihood ratio statistic.}
 
 \item{\code{pnames}}{A character vector of length two for the name of parameters.}
 }}

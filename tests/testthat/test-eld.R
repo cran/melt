@@ -1,20 +1,50 @@
-test_that("invalid 'object", {
-  skip_on_os("windows", arch = "i386")
-  n <- 100
-  x <- rnorm(n)
-  y <- 1 + x + rnorm(n)
-  df <- data.frame(y, x)
-  optcfg <- el_control(tol = 1e-08, th = 1e+10)
-  fit <- el_lm(y ~ x, df, control = optcfg)
-  expect_error(eld(fit, control = list(maxit = 20L)))
-  eld <- eld(fit)
-  pdf(NULL)
-  plot(eld)
-  expect_length(eld@eld, n)
-  lhs <- matrix(c(1, -1), nrow = 1)
-  fit2 <- lht(fit, lhs = lhs)
-  expect_error(eld(df))
+test_that("Invalid `object`.", {
+  fit <- el_lm(mpg ~ hp, data = mtcars)
   fit@data <- matrix(NA_real_, nrow = 0L, ncol = 0L)
   expect_error(eld(fit))
-  expect_error(eld(fit2))
+})
+
+test_that("Invalid `control`.", {
+  fit <- el_lm(mpg ~ hp, data = mtcars)
+  expect_error(eld(fit, control = list(maxit = 20L)))
+})
+
+test_that("`weights`", {
+  fit <- el_lm(extra ~ ID, data = sleep, weights = as.numeric(group))
+  expect_s4_class(eld(fit), "ELD")
+})
+
+test_that("Mean parameter.", {
+  fit <- el_mean(women$height, par = 67)
+  fit2 <- el_mean(women$height, par = 67, weights = women$weight)
+  expect_s4_class(eld(fit), "ELD")
+  expect_s4_class(eld(fit2), "ELD")
+})
+
+test_that("`SD` class.", {
+  x <- women$height
+  w <- women$weight
+  fit <- el_sd(x, mean = 65, sd = 4)
+  wfit <- el_sd(x, mean = 65, sd = 4, weights = w)
+  expect_s4_class(eld(fit), "ELD")
+  expect_s4_class(eld(wfit), "ELD")
+})
+
+test_that("`GLM` class.", {
+  fit <- el_glm(wool ~ -1 + breaks, family = binomial, data = warpbreaks)
+  wfit <- el_glm(wool ~ ., family = binomial, data = warpbreaks,
+                 weights = breaks)
+  expect_s4_class(eld(fit), "ELD")
+  expect_s4_class(eld(wfit), "ELD")
+})
+
+test_that("Plot method.", {
+  fit <- el_lm(mpg ~ disp + hp + wt, data = mtcars)
+  eld <- eld(fit)
+  pdf(NULL)
+  expect_invisible(plot(eld))
+})
+
+test_that("Missing `object`.", {
+  expect_null(eld())
 })

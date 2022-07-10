@@ -3,7 +3,8 @@
 \docType{class}
 \name{ELD-class}
 \alias{ELD-class}
-\title{S4 class \linkS4class{ELD}}
+\alias{ELD}
+\title{\linkS4class{ELD} class}
 \description{
 S4 class for empirical likelihood displacement.
 }

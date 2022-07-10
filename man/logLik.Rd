@@ -8,18 +8,19 @@
 \S4method{logLik}{EL}(object, ...)
 }
 \arguments{
-\item{object}{A fitted \linkS4class{EL} object.}
+\item{object}{An object that inherit from \linkS4class{EL}.}
 
-\item{...}{Not used.}
+\item{...}{Further arguments passed to methods.}
 }
 \value{
 An object of class \linkS4class{logLikEL}.
 }
 \description{
 Extracts empirical log-likelihood from a model evaluated at the estimated
-  coefficients.
+coefficients.
 }
 \examples{
-fit <- el_lm(formula = mpg ~ wt, data = mtcars)
+data("precip")
+fit <- el_mean(precip, par = 40)
 logLik(fit)
 }

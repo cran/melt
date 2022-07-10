@@ -3,89 +3,92 @@
 \docType{class}
 \name{EL-class}
 \alias{EL-class}
-\title{S4 class \linkS4class{EL}}
+\alias{EL}
+\title{\linkS4class{EL} class}
 \description{
 S4 class for empirical likelihood.
 }
 \details{
 Let \eqn{X_i} be independent and identically distributed
-  \eqn{p}-dimensional random variable from an unknown distribution \eqn{F}
-  for \eqn{i = 1, \dots, n}. For a parameter of interest \eqn{\theta(F) \in
-  {\rm{I\!R}}^p}, consider a \eqn{p}-dimensional smooth estimating function
-  \eqn{g(X_i, \theta)} with a moment condition
-  \deqn{\textnormal{E}[g(X_i, \theta)] = 0.}
-  We assume that there exists an unique \eqn{\theta_0} that solves the above
-  equation. Given a value of \eqn{\theta}, the (profile) empirical likelihood
-  ratio is defined by
-  \deqn{\mathcal{R}(\theta) =
+\eqn{p}-dimensional random variable from an unknown distribution \eqn{F}
+for \eqn{i = 1, \dots, n}. We assume that \eqn{F} has a positive definite
+covariance matrix. For a parameter of interest
+\eqn{\theta(F) \in {\rm{I\!R}}^p}, consider a \eqn{p}-dimensional smooth
+estimating function \eqn{g(X_i, \theta)} with a moment condition
+\deqn{\textrm{E}[g(X_i, \theta)] = 0.}
+We assume that there exists an unique \eqn{\theta_0} that solves the above
+equation. Given a value of \eqn{\theta}, the (profile) empirical likelihood
+ratio is defined by
+\deqn{\mathcal{R}(\theta) =
   \max_{p_i}\left\{\prod_{i = 1}^n np_i :
   \sum_{i = 1}^n p_i g(X_i, \theta) = 0, p_i \geq 0, \sum_{i = 1}^n p_i = 1
   \right\}.}
-  The Lagrange multiplier \eqn{\lambda \equiv \lambda(\theta)} of the dual
-  problem leads to
-  \deqn{p_i = \frac{1}{n}\frac{1}{1 + \lambda^\top g(X_i, \theta)},}
-  where \eqn{\lambda} solves
-  \deqn{\frac{1}{n}\sum_{i = 1}^n \frac{g(X_i, \theta)}
+The Lagrange multiplier \eqn{\lambda \equiv \lambda(\theta)} of the dual
+problem leads to
+\deqn{p_i = \frac{1}{n}\frac{1}{1 + \lambda^\top g(X_i, \theta)},}
+where \eqn{\lambda} solves
+\deqn{\frac{1}{n}\sum_{i = 1}^n \frac{g(X_i, \theta)}
   {1 + \lambda^\top g(X_i, \theta)} = 0.}
-  Then the empirical log-likelihood ratio is given by
-  \deqn{\log\mathcal{R}(\theta) = -\sum_{i = 1}^n
+Then the empirical log-likelihood ratio is given by
+\deqn{\log\mathcal{R}(\theta) = -\sum_{i = 1}^n
   \log(1 + \lambda^\top g(X_i, \theta)).}
-  This problem can be efficiently solved by the Newton-Raphson method when
-  the zero vector is contained in the interior of the convex hull of
-  \eqn{\{g(X_i, \theta)\}_{i = 1}^n}.
+This problem can be efficiently solved by the Newton-Raphson method when
+the zero vector is contained in the interior of the convex hull of
+\eqn{\{g(X_i, \theta)\}_{i = 1}^n}.
 
-  Under some regularity conditions, it is known that
-  \eqn{-2\log\mathcal{R}(\theta_0)} converges in distribution to
-  \eqn{\chi^2_p}, where \eqn{\chi^2_p} has a chi-square distribution with
-  \eqn{p} degrees of freedom.
+Under some regularity conditions, it is known that
+\eqn{-2\log\mathcal{R}(\theta_0)} converges in distribution to
+\eqn{\chi^2_p}, where \eqn{\chi^2_p} has a chi-square distribution with
+\eqn{p} degrees of freedom.
 }
 \section{Slots}{
 
 \describe{
 \item{\code{optim}}{A list with the following optimization results:
 \itemize{
-\item{\code{method } }{Character for method dispatch in internal
-functions.}
-\item{\code{par } }{Parameter value specified.}
-\item{\code{lambda } }{Lagrange multiplier of the dual problem.}
-\item{\code{iterations } }{Number of iterations performed.}
-\item{\code{convergence } }{Convergence status.}
+\item{\code{par } }{A numeric vector of the specified parameters.}
+\item{\code{lambda } }{A numeric vector of the Lagrange multipliers.}
+\item{\code{iterations } }{A single integer for the number of iterations
+performed.}
+\item{\code{convergence } }{A single logical for the convergence status.}
 }}
 
-\item{\code{logp}}{Log probabilities obtained from empirical likelihood.}
+\item{\code{logp}}{A numeric vector of the log probabilities obtained from empirical
+likelihood.}
 
-\item{\code{logl}}{Empirical log-likelihood.}
+\item{\code{logl}}{A single numeric for the empirical log-likelihood.}
 
-\item{\code{loglr}}{Empirical log-likelihood ratio.}
+\item{\code{loglr}}{A single numeric for the empirical log-likelihood ratio.}
 
-\item{\code{statistic}}{Minus twice the empirical log-likelihood ratio statistic that
-has an asymptotic chi-square distribution.}
+\item{\code{statistic}}{A single numeric for the minus twice the empirical
+log-likelihood ratio statistic that has an asymptotic chi-square
+distribution.}
 
-\item{\code{df}}{Degrees of freedom of the statistic.}
+\item{\code{df}}{A single integer for the degrees of freedom of the statistic.}
 
-\item{\code{pval}}{\eqn{p}-value of the statistic.}
+\item{\code{pval}}{A single numeric for the \eqn{p}-value of the statistic.}
 
-\item{\code{npar}}{Number of parameters.}
+\item{\code{npar}}{A single integer for the number of parameters.}
 
-\item{\code{weights}}{Rescaled weights used for model fitting.}
+\item{\code{weights}}{A numeric vector of re-scaled weights used for model fitting.}
 
-\item{\code{data}}{Data matrix used for model fitting.}
+\item{\code{data}}{A numeric matrix for the data used for model fitting.}
 
-\item{\code{coefficients}}{Maximum empirical likelihood estimates of the parameters.}
+\item{\code{coefficients}}{A numeric vector of the maximum empirical likelihood
+estimates of the parameters.}
 
-\item{\code{method}}{Character for method dispatch in internal functions.}
+\item{\code{method}}{A single character for the method dispatch in internal
+functions.}
 }}
 
 \examples{
 showClass("EL")
 }
 \references{
-Glenn, N.L., and Yichuan Zhao. 2007.
-  “Weighted Empirical Likelihood Estimates and Their Robustness Properties.”
-  Computational Statistics & Data Analysis 51 (10): 5130–41.
-  \doi{10.1016/j.csda.2006.07.032}.
+Owen A (2001). Empirical Likelihood. Chapman & Hall/CRC.
+\doi{10.1201/9781420036152}.
 
-Qin, Jin, and Jerry Lawless. 1994.
-  “Empirical Likelihood and General Estimating Equations.”
-  The Annals of Statistics 22 (1): 300–325. \doi{10.1214/aos/1176325370}.
+Qin J, Lawless J (1994).
+“Empirical Likelihood and General Estimating Equations.”
+The Annals of Statistics, 22(1), 300–325. \doi{10.1214/aos/1176325370}.
 }
