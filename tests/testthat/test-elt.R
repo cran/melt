@@ -3,6 +3,11 @@ test_that("Invalid `object`.", {
   expect_error(elt(fit, lhs = 1))
   fit2 <- el_lm(mpg ~ 0, data = mtcars)
   expect_error(elt(fit2, lhs = 1))
+  fit3 <- el_glm(gear ~ 0, family = quasipoisson("log"), data = mtcars)
+  expect_error(elt(fit3, rhs = coef(fit3)))
+  fit4 <- el_glm(gear ~ ., family = quasipoisson("log"), data = mtcars)
+  fit4@data <- NULL
+  expect_error(elt(fit4, rhs = coef(fit4)))
 })
 
 test_that("Invalid `rhs` and `lhs`.", {
@@ -30,32 +35,38 @@ test_that("Invalid `calibrate`.", {
   expect_error(elt(fit, rhs = c(1, 1), calibrate = c(1, 2)))
   expect_error(elt(fit, rhs = c(1, 1), calibrate = "error"))
   expect_error(elt(fit, rhs = c(1, 1), calibrate = "f"))
+  fit2 <- el_glm(gear ~ mpg + cyl, family = quasipoisson("log"), data = mtcars)
+  expect_error(elt(fit2, rhs = coef(fit2), calibrate = "f"))
+  expect_error(elt(fit, lhs = c(0, 1, 1), calibrate = "boot"))
+  expect_error(elt(fit, lhs = c(0, 1, 1), calibrate = "f"))
 })
 
 test_that("Invalid `control`.", {
   fit <- el_mean(sleep$extra, par = 0)
   expect_error(elt(fit, lhs = 1, control = list(maxit = 200L)))
+  fit2 <- el_glm(gear ~ ., family = quasipoisson("log"), data = mtcars)
+  expect_error(elt(fit2, rhs = coef(fit2), control = list()))
 })
 
 test_that("When elt == evaluation.", {
   x <- sleep$extra
   fit <- el_mean(x, par = 1.2)
   fit2 <- elt(fit, rhs = 1.2)
-  expect_equal(fit@optim$lambda, fit2@optim$lambda)
+  expect_equal(getOptim(fit)$lambda, getOptim(fit2)$lambda)
   wfit <- el_mean(x, par = 1.2, weights = as.numeric(sleep$group))
   wfit2 <- elt(wfit, rhs = 1.2)
-  expect_equal(wfit@optim$lambda, wfit2@optim$lambda)
+  expect_equal(getOptim(wfit)$lambda, getOptim(wfit2)$lambda)
   fit3 <- el_lm(mpg ~ disp + hp, data = mtcars)
   lhs <- matrix(c(0, 0, 1, 0, 0, 1), nrow = 2)
   rhs <- c(0, 0)
   fit4 <- elt(fit3, rhs = rhs, lhs = lhs)
   expect_output(print(fit3))
-  expect_equal(fit3@optim$lambda, fit4@optim$lambda)
+  expect_equal(getOptim(fit3)$lambda, getOptim(fit4)$lambda)
   wfit3 <- el_lm(mpg ~ disp + hp, data = mtcars, weights = wt)
   lhs <- matrix(c(0, 0, 1, 0, 0, 1), nrow = 2)
   rhs <- c(0, 0)
   wfit4 <- elt(wfit3, rhs = rhs, lhs = lhs)
-  expect_equal(wfit3@optim$lambda, wfit4@optim$lambda)
+  expect_equal(getOptim(wfit3)$lambda, getOptim(wfit4)$lambda)
 })
 
 test_that("`conv()` method and calibration.", {
@@ -109,5 +120,15 @@ test_that("`SD` class.", {
   out <- elt(fit, rhs = 1)
   out2 <- elt(fit, rhs = 1, lhs = 2)
   expect_s4_class(out, "ELT")
+  expect_s4_class(out2, "ELT")
+})
+
+test_that("`QGLM` class.", {
+  fit <- el_glm(gear ~ mpg + cyl,
+    family = quasipoisson("log"), data = mtcars
+  )
+  out <- elt(fit, rhs = coef(fit))
+  expect_s4_class(out, "ELT")
+  out2 <- elt(fit, lhs = c(0, 1, 1))
   expect_s4_class(out2, "ELT")
 })

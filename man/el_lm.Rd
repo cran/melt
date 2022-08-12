@@ -45,7 +45,7 @@ model:
 where \eqn{\theta = (\theta_0, \dots, \theta_{p-1})} is an unknown
 \eqn{p}-dimensional parameter and the errors \eqn{\epsilon_i} are
 independent random variables that satisfy
-\eqn{\textnormal{E}(\epsilon_i | X_i)} = 0. We assume that the errors have
+\eqn{\textrm{E}(\epsilon_i | X_i)} = 0. We assume that the errors have
 finite conditional variance. Then the least square estimator of
 \eqn{\theta} solves the following estimating equation:
 \deqn{\sum_{i = 1}^n(Y_i - X_i^\top \theta)X_i = 0.}
@@ -59,7 +59,7 @@ test with
 \deqn{H_0: \theta_1 = \theta_2 = \cdots = \theta_{p-1} = 0,}
 and significance tests for each parameter with
 \deqn{H_{0j}: \theta_j = 0,\ j = 0, \dots, p-1.}
-The test results are returned as \code{optim} and \code{parTests}, respectively.
+The test results are returned as \code{optim} and \code{sigTests}, respectively.
 }
 \examples{
 set.seed(5649)

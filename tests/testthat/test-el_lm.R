@@ -41,13 +41,13 @@ test_that("Probabilities add up to 1.", {
 test_that("Conversion between `loglik` and `loglr`.", {
   fit <- el_lm(eruptions ~ waiting, data = faithful)
   n <- nrow(faithful)
-  expect_equal(fit@logl + n * log(n), logLR(fit))
+  expect_equal(logL(fit) + n * log(n), logLR(fit))
   wfit <- el_lm(eruptions ~ waiting,
     data = faithful,
     weights = faithful$waiting
   )
   w <- weights(wfit)
-  expect_equal(wfit@logl + sum(w * (log(n) - log(w))), logLR(wfit))
+  expect_equal(logL(wfit) + sum(w * (log(n) - log(w))), logLR(wfit))
 })
 
 test_that("Empty model.", {
@@ -75,6 +75,11 @@ test_that("`print()` method.", {
   df2[1, 1] <- NA
   fit2 <- el_lm(mpg ~ disp + hp, data = df2)
   expect_output(print(summary(fit2)))
+  fit3 <- el_lm(mpg ~ -1 + disp + hp, data = mtcars)
+  expect_output(print(fit3))
+  expect_output(print(summary(fit3)))
+  wfit <- el_lm(mpg ~ disp + hp, data = mtcars, weights = gear)
+  expect_output(print(wfit))
 })
 
 test_that("`verbose` == TRUE in `el_control()`.", {
@@ -84,39 +89,18 @@ test_that("`verbose` == TRUE in `el_control()`.", {
 })
 
 test_that("`conv()`, `formula()`, and `nobs()` methods.", {
-  fit <- el_lm(mpg ~ disp + hp, data = mtcars)
-  expect_false(conv(fit))
+  fit <- el_lm(mpg ~ disp + hp,
+    data = mtcars,
+    control = el_control(th = 1e+10)
+  )
+  fit2 <- el_lm(mpg ~ disp + hp,
+    data = mtcars,
+    control = el_control(step = .Machine$double.eps, th = 1e+10)
+  )
+  expect_true(conv(fit))
+  expect_false(conv(fit2))
   expect_type(formula(fit), "language")
   expect_identical(nobs(fit), nrow(mtcars))
-})
-
-#' @srrstats {G5.6, G5.6a, G5.6b} `el_lm()` returns the expected coefficients
-#'   (`rep(1, p)`) for a simulated data set generated from a linear model. The
-#'   parameters used are `n = 1e+05`, `p = 3`, and `tolerance = 1e-02`, with
-#'   three different seeds.
-test_that("Parameter recovery tests.", {
-  set.seed(5524325)
-  n <- 1e+05
-  p <- 3
-  e <- rnorm(n)
-  b <- rep(1, p)
-  x <- matrix(rnorm(n * p), ncol = p)
-  y <- x %*% b + e
-  df <- data.frame(y, x)
-  fit <- el_lm(y ~ -1 + ., df)
-  expect_equal(max(abs(coef(fit))), 1, tolerance = 1e-02)
-  set.seed(55267654)
-  x2 <- matrix(rnorm(n * p), ncol = p)
-  y2 <- x2 %*% b + e
-  df2 <- data.frame(y2, x2)
-  fit2 <- el_lm(y2 ~ -1 + ., df2)
-  expect_equal(max(abs(coef(fit2))), 1, tolerance = 1e-02)
-  set.seed(0841)
-  x3 <- matrix(rnorm(n * p), ncol = p)
-  y3 <- x3 %*% b + e
-  df3 <- data.frame(y3, x3)
-  fit3 <- el_lm(y3 ~ -1 + ., df3)
-  expect_equal(max(abs(coef(fit3))), 1, tolerance = 1e-02)
 })
 
 #' @srrstats {RE7.0, RE7.0a} Exact relationship between predictors causes erros.
@@ -137,14 +121,14 @@ test_that("All row and column names are preserved.", {
   row_names <- rownames(mtcars)
   column_names <- colnames(mtcars)
   expect_identical(names(wfit@logp), row_names)
-  expect_identical(rownames(wfit@data), row_names)
+  expect_identical(rownames(getData(wfit)), row_names)
   expect_identical(names(weights(wfit)), row_names)
   expect_identical(formula(wfit), formula(wfit@terms))
   expect_identical(nobs(wfit), nrow(mtcars))
-  expect_true(all(names(wfit@parTests$statistic) %in% column_names))
-  expect_true(all(names(wfit@parTests$convergence) %in% column_names))
-  expect_true(all(names(wfit@optim$par) %in% column_names))
-  expect_true(all(colnames(wfit@data[, -1L]) %in% column_names))
+  expect_true(all(names(sigTests(wfit)$statistic) %in% column_names))
+  expect_true(all(names(sigTests(wfit)$convergence) %in% column_names))
+  expect_true(all(names(getOptim(wfit)$par) %in% column_names))
+  expect_true(all(colnames(getData(wfit)[, -1L]) %in% column_names))
   expect_true(all(names(coef(wfit)) %in% column_names))
   expect_true(all(rownames(confint(wfit)) %in% column_names))
 })

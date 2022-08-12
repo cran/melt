@@ -34,13 +34,10 @@
 #'   \eqn{\chi^2_p}, where \eqn{\chi^2_p} has a chi-square distribution with
 #'   \eqn{p} degrees of freedom.
 #' @slot optim A list with the following optimization results:
-#'   \itemize{
-#'   \item{`par ` }{A numeric vector of the specified parameters.}
-#'   \item{`lambda ` }{A numeric vector of the Lagrange multipliers.}
-#'   \item{`iterations ` }{A single integer for the number of iterations
-#'   performed.}
-#'   \item{`convergence ` }{A single logical for the convergence status.}
-#'   }
+#'   * `par` A numeric vector of the specified parameters.
+#'   * `lambda` A numeric vector of the Lagrange multipliers.
+#'   * `iterations` A single integer for the number of iterations performed.
+#'   * `convergence` A single logical for the convergence status.
 #' @slot logp A numeric vector of the log probabilities obtained from empirical
 #'   likelihood.
 #' @slot logl A single numeric for the empirical log-likelihood.
@@ -52,11 +49,11 @@
 #' @slot pval A single numeric for the \eqn{p}-value of the statistic.
 #' @slot npar A single integer for the number of parameters.
 #' @slot weights A numeric vector of re-scaled weights used for model fitting.
-#' @slot data A numeric matrix for the data used for model fitting.
 #' @slot coefficients A numeric vector of the maximum empirical likelihood
 #'   estimates of the parameters.
 #' @slot method A single character for the method dispatch in internal
 #'   functions.
+#' @slot data A numeric matrix for the data used for model fitting.
 #' @aliases EL
 #' @references Owen A (2001). Empirical Likelihood. Chapman & Hall/CRC.
 #'   \doi{10.1201/9781420036152}.
@@ -79,14 +76,8 @@ setClass("EL",
   slots = c(
     optim = "list", logp = "numeric", logl = "numeric", loglr = "numeric",
     statistic = "numeric", df = "integer", pval = "numeric", nobs = "integer",
-    npar = "integer", weights = "numeric", data = "ANY",
-    coefficients = "numeric", method = "character"
-  ),
-  prototype = list(
-    optim = list(), logp = numeric(), logl = numeric(), loglr = numeric(),
-    statistic = numeric(), df = 0L, pval = numeric(), npar = 0L,
-    weights = numeric(), data = NULL,
-    coefficients = numeric(), method = NA_character_
+    npar = "integer", weights = "numeric",
+    coefficients = "numeric", method = "character", data = "ANY"
   )
 )
 
@@ -94,8 +85,9 @@ setClass("EL",
 #' \linkS4class{CEL} class
 #'
 #' S4 class for constrained empirical likelihood. It inherits from
-#' \linkS4class{EL} class. Note that `optim` slot has constrained optimization
-#' results with respect to parameters, not the Lagrange multiplier.
+#'   \linkS4class{EL} class. Note that the `optim` slot has constrained
+#'   optimization results with respect to the parameters, not the Lagrange
+#'   multiplier.
 #'
 #' @details Let \eqn{l(\theta)} denote the minus twice the empirical
 #'   log-likelihood ratio function. We consider a linear hypothesis of the form
@@ -120,14 +112,12 @@ setClass("EL",
 #'   \eqn{\theta^{(k)}}. The first order optimality condition is
 #'   \eqn{P \nabla l(\theta) = 0}, which is used as the stopping criterion.
 #' @slot optim A list with the following optimization results:
-#'   \itemize{
-#'   \item{`par ` }{A numeric vector of the parameter value that minimizes the
-#'   empirical likelihood subject to the constraints.}
-#'   \item{`lambda ` }{A numeric vector of the Lagrange multipliers.}
-#'   \item{`iterations ` }{A single integer for the number of iterations
-#'   performed.}
-#'   \item{`convergence ` }{A single logical for the convergence status.}
-#'   }
+#'   * `par` A numeric vector of the parameter value that minimizes the
+#'   empirical likelihood subject to the constraints.
+#'   * `lambda` A numeric vector of the Lagrange multipliers.
+#'   * `iterations` A single integer for the number of iterations
+#'   performed.
+#'   * `convergence` A single logical for the convergence status.
 #' @aliases CEL
 #' @references Adimari G, Guolo A (2010).
 #'   “A Note on the Asymptotic Behaviour of Empirical Likelihood Statistics.”
@@ -146,40 +136,44 @@ setClass("EL",
 setClass("CEL", contains = "EL")
 
 
+setOldClass("terms")
 #' \linkS4class{LM} class
 #'
 #' S4 class for linear models with empirical likelihood. It inherits from
-#' \linkS4class{CEL} class.
+#'   \linkS4class{CEL} class.
 #'
-#' @details If there is no intercept in a model, `optim` slot need to be
+#' @details If there is no intercept in a model, the `optim` slot need to be
 #'   understood in terms of \linkS4class{EL} class since constrained
 #'   optimization is not involved in the overall test.
-#' @slot parTests A list with the test results for each parameter:
-#'   \itemize{
-#'   \item{`statistic ` }{A numeric vector of the empirical likelihood
-#'   ratio statistics.}
-#'   \item{`convergence ` }{A logical vector of the convergence status of
-#'   tests for each parameter.}
-#'   }
+#' @slot sigTests A list with the results of significance tests.
+#' @slot call A matched call.
+#' @slot terms A [`terms`] object used.
 #' @slot misc A list with miscellaneous outputs from a model fitting function.
 #'   They are used in other generics and methods.
 #' @aliases LM
 #' @examples
 #' showClass("LM")
 setClass("LM",
-  contains = "CEL",
-  slots = c(parTests = "list", call = "call", terms = "ANY", misc = "list")
+  slots = c(sigTests = "ANY", call = "call", terms = "terms", misc = "list"),
+  contains = "CEL"
 )
 
+
+setOldClass("family")
 #' \linkS4class{GLM} class
 #'
-#' S4 class for generalized linear models with empirical likelihood. It inherits
-#' from \linkS4class{LM} class.
+#' S4 class for generalized linear models. It inherits from \linkS4class{LM}
+#'   class.
 #'
+#' @slot family A [`family`] object used.
+#' @slot dispersion A single numeric for the estimated dispersion parameter.
 #' @aliases GLM
 #' @examples
 #' showClass("GLM")
-setClass("GLM", contains = "LM")
+setClass("GLM",
+  slots = c(family = "family", dispersion = "numeric"),
+  contains = "LM"
+)
 
 
 #' \linkS4class{SD} class
@@ -196,9 +190,7 @@ setClass("SD", contains = "EL")
 #'
 #' S4 class for confidence region.
 #'
-#' @slot points A numeric matrix with two columns for boundary points of a
-#'   confidence region.
-#' @slot estimates A numeric vector of length two for parameter estimates.
+#' @slot estimates A numeric vector of length two for the parameter estimates.
 #' @slot level A single numeric for the confidence level required.
 #' @slot cv A single numeric for the critical value for calibration of empirical
 #'   likelihood ratio statistic.
@@ -208,12 +200,10 @@ setClass("SD", contains = "EL")
 #' showClass("ConfregEL")
 setClass("ConfregEL",
   slots = c(
-    points = "matrix", estimates = "numeric", level = "numeric", cv = "numeric",
+    estimates = "numeric", level = "numeric", cv = "numeric",
     pnames = "character"
   ),
-  prototype = list(
-    points = NULL, estimates = NA_real_, cv = NA_real_, pnames = NA_character_
-  )
+  contains = "matrix"
 )
 
 
@@ -261,11 +251,10 @@ setClass("ControlEL",
 #'
 #' S4 class for empirical likelihood displacement.
 #'
-#' @slot eld A numeric vector of empirical likelihood displacement values.
 #' @aliases ELD
 #' @examples
 #' showClass("ELD")
-setClass("ELD", slots = c(eld = "numeric"))
+setClass("ELD", contains = "numeric")
 
 
 #' \linkS4class{ELT} class
@@ -319,13 +308,23 @@ setClass("ELMT",
 #'
 #' S4 class for empirical log-likelihood.
 #'
-#' @slot logLik A single numeric for the empirical log-likelihood.
 #' @slot df A single integer for the degrees of freedom or the number of
 #'   (estimated) parameters in the model.
 #' @aliases logLikEL
 #' @examples
 #' showClass("logLikEL")
-setClass("logLikEL", slots = c(logLik = "numeric", df = "integer"))
+setClass("logLikEL", slots = c(df = "integer"), contains = "numeric")
+
+
+#' \linkS4class{QGLM} class
+#'
+#' S4 class for generalized linear models with quasi-likelihood methods. It
+#'   inherits from \linkS4class{GLM} class.
+#'
+#' @aliases QGLM
+#' @examples
+#' showClass("QGLM")
+setClass("QGLM", contains = "GLM")
 
 
 #' \linkS4class{SummaryLM} class
@@ -337,13 +336,13 @@ setClass("logLikEL", slots = c(logLik = "numeric", df = "integer"))
 #' @slot df A single integer for the degrees of freedom of the statistic.
 #' @slot convergence A single logical for the convergence status of the
 #'   constrained minimization.
-#' @slot parMatrix A numeric matrix of the test results of the parameters.
+#' @slot sigTests A numeric matrix of the results of significance tests.
 #' @slot weighted A single logical for whether the given model is weighted or
 #'   not.
 #' @slot na.action Information returned by [`model.frame`] on the special
 #'   handling of `NA`s.
-#' @slot call Matched call.
-#' @slot terms [`terms`] object used.
+#' @slot call A matched call.
+#' @slot terms A [`terms`] object used.
 #' @slot aliased A named logical vector showing if the original coefficients are
 #'   aliased.
 #' @aliases SummaryLM
@@ -351,6 +350,33 @@ setClass("logLikEL", slots = c(logLik = "numeric", df = "integer"))
 #' showClass("SummaryLM")
 setClass("SummaryLM", slots = c(
   statistic = "numeric", df = "integer", convergence = "logical",
-  parMatrix = "matrix", weighted = "logical", na.action = "ANY", call = "ANY",
-  terms = "ANY", aliased = "logical"
+  sigTests = "matrix", weighted = "logical", intercept = "logical",
+  na.action = "ANY", call = "call", terms = "terms", aliased = "logical"
 ))
+
+
+#' \linkS4class{SummaryGLM} class
+#'
+#' S4 class for a summary of \linkS4class{GLM} objects. It inherits from
+#'   \linkS4class{SummaryLM} class.
+#'
+#' @slot family A [`family`] object used.
+#' @slot dispersion A single numeric for the estimated dispersion parameter.
+#' @aliases SummaryGLM
+#' @examples
+#' showClass("SummaryGLM")
+setClass("SummaryGLM",
+  slots = c(family = "family", dispersion = "numeric"),
+  contains = "SummaryLM"
+)
+
+
+#' \linkS4class{SummaryQGLM} class
+#'
+#' S4 class for a summary of \linkS4class{QGLM} objects. It inherits from
+#'   \linkS4class{SummaryGLM} class.
+#'
+#' @aliases SummaryQGLM
+#' @examples
+#' showClass("SummaryQGLM")
+setClass("SummaryQGLM", contains = "SummaryGLM")

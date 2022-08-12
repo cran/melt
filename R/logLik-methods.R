@@ -7,9 +7,8 @@ setMethod("logLik", "EL", function(object, ...) {
   }
   stopifnot(
     "`object` has no `data`. Fit the model with `keep_data == TRUE`." =
-      (!is.null(getDataMatrix(object)))
+      (isFALSE(is.null(getData(object))))
   )
   out <- elt(object, rhs = coef(object))
-  val <- out@logl
-  new("logLikEL", logLik = val, df = getNumPar(object))
+  new("logLikEL", .Data = logL(out), df = getNumPar(object))
 })

@@ -15,15 +15,15 @@ test_that("Parallel computation yields the same results (gaussian - log).", {
     control = el_control(nthreads = 1)
   )
   fit2 <- el_glm(y ~ ., family = gaussian("log"), data = df)
-  expect_equal(fit@optim, fit2@optim)
-  expect_equal(fit@parTests, fit2@parTests)
+  expect_equal(getOptim(fit), getOptim(fit2))
+  expect_equal(sigTests(fit), sigTests(fit2))
   wfit <- el_glm(y ~ .,
     family = gaussian("log"), data = df, weights = w,
     control = el_control(nthreads = 1)
   )
   wfit2 <- el_glm(y ~ ., family = gaussian("log"), data = df, weights = w)
-  expect_equal(wfit@optim, wfit2@optim)
-  expect_equal(wfit@parTests, wfit2@parTests)
+  expect_equal(getOptim(wfit), getOptim(wfit2))
+  expect_equal(sigTests(wfit), sigTests(wfit2))
   lhs <- list(
     matrix(c(0, 0, 2, 1.2), nrow = 1),
     matrix(c(0, 1, 0, -.5), nrow = 1)
@@ -48,15 +48,15 @@ test_that("Parallel computation yields the same results (binomial - logit).", {
     control = el_control(nthreads = 1)
   )
   fit2 <- el_glm(y ~ ., family = binomial("logit"), data = df)
-  expect_equal(fit@optim, fit2@optim)
-  expect_equal(fit@parTests, fit2@parTests)
+  expect_equal(getOptim(fit), getOptim(fit2))
+  expect_equal(sigTests(fit), sigTests(fit2))
   wfit <- el_glm(y ~ .,
     family = binomial("logit"), data = df, weights = w,
     control = el_control(nthreads = 1)
   )
   wfit2 <- el_glm(y ~ ., family = binomial("logit"), data = df, weights = w)
-  expect_equal(wfit@optim, wfit2@optim)
-  expect_equal(wfit@parTests, wfit2@parTests)
+  expect_equal(getOptim(wfit), getOptim(wfit2))
+  expect_equal(sigTests(wfit), sigTests(wfit2))
 })
 
 test_that("Parallel computation yields the same results (binomial - probit).", {
@@ -76,15 +76,15 @@ test_that("Parallel computation yields the same results (binomial - probit).", {
     control = el_control(nthreads = 1)
   )
   fit2 <- el_glm(y ~ ., family = binomial("probit"), data = df)
-  expect_equal(fit@optim, fit2@optim)
-  expect_equal(fit@parTests, fit2@parTests)
+  expect_equal(getOptim(fit), getOptim(fit2))
+  expect_equal(sigTests(fit), sigTests(fit2))
   wfit <- el_glm(y ~ .,
     family = binomial("probit"), data = df, weights = w,
     control = el_control(nthreads = 1)
   )
   wfit2 <- el_glm(y ~ ., family = binomial("probit"), data = df, weights = w)
-  expect_equal(wfit@optim, wfit2@optim)
-  expect_equal(wfit@parTests, wfit2@parTests)
+  expect_equal(getOptim(wfit), getOptim(wfit2))
+  expect_equal(sigTests(wfit), sigTests(wfit2))
 })
 
 test_that("Parallel computation yields the same results (binomial - log).", {
@@ -104,15 +104,15 @@ test_that("Parallel computation yields the same results (binomial - log).", {
     control = el_control(nthreads = 1)
   )
   fit2 <- el_glm(y ~ ., family = binomial("log"), data = df)
-  expect_equal(fit@optim, fit2@optim)
-  expect_equal(fit@parTests, fit2@parTests)
+  expect_equal(getOptim(fit), getOptim(fit2))
+  expect_equal(sigTests(fit), sigTests(fit2))
   wfit <- el_glm(y ~ .,
     family = binomial("log"), data = df, weights = w,
     control = el_control(nthreads = 1)
   )
   wfit2 <- el_glm(y ~ ., family = binomial("log"), data = df, weights = w)
-  expect_equal(wfit@optim, wfit2@optim)
-  expect_equal(wfit@parTests, wfit2@parTests)
+  expect_equal(getOptim(wfit), getOptim(wfit2))
+  expect_equal(sigTests(wfit), sigTests(wfit2))
 })
 
 test_that("Parallel computation yields the same results (poisson - log).", {
@@ -132,15 +132,15 @@ test_that("Parallel computation yields the same results (poisson - log).", {
     control = el_control(nthreads = 1)
   )
   fit2 <- el_glm(y ~ ., family = poisson("log"), data = df)
-  expect_equal(fit@optim, fit2@optim)
-  expect_equal(fit@parTests, fit2@parTests)
+  expect_equal(getOptim(fit), getOptim(fit2))
+  expect_equal(sigTests(fit), sigTests(fit2))
   wfit <- el_glm(y ~ .,
     family = poisson("log"), data = df, weights = w,
     control = el_control(nthreads = 1)
   )
   wfit2 <- el_glm(y ~ ., family = poisson("log"), data = df, weights = w)
-  expect_equal(wfit@optim, wfit2@optim)
-  expect_equal(wfit@parTests, wfit2@parTests)
+  expect_equal(getOptim(wfit), getOptim(wfit2))
+  expect_equal(sigTests(wfit), sigTests(wfit2))
 })
 
 test_that(
@@ -162,15 +162,15 @@ test_that(
       control = el_control(nthreads = 1)
     )
     fit2 <- el_glm(y ~ ., family = poisson("identity"), data = df)
-    expect_equal(fit@optim, fit2@optim)
-    expect_equal(fit@parTests, fit2@parTests)
+    expect_equal(getOptim(fit), getOptim(fit2))
+    expect_equal(sigTests(fit), sigTests(fit2))
     wfit <- el_glm(y ~ .,
       family = poisson("identity"), data = df, weights = w,
       control = el_control(nthreads = 1)
     )
     wfit2 <- el_glm(y ~ ., family = poisson("identity"), data = df, weights = w)
-    expect_equal(wfit@optim, wfit2@optim)
-    expect_equal(wfit@parTests, wfit2@parTests)
+    expect_equal(getOptim(wfit), getOptim(wfit2))
+    expect_equal(sigTests(wfit), sigTests(wfit2))
   }
 )
 
@@ -191,15 +191,15 @@ test_that("Parallel computation yields the same results (poisson - sqrt).", {
     control = el_control(nthreads = 1)
   )
   fit2 <- el_glm(y ~ ., family = poisson("sqrt"), data = df)
-  expect_equal(fit@optim, fit2@optim)
-  expect_equal(fit@parTests, fit2@parTests)
+  expect_equal(getOptim(fit), getOptim(fit2))
+  expect_equal(sigTests(fit), sigTests(fit2))
   wfit <- el_glm(y ~ .,
     family = poisson("sqrt"), data = df, weights = w,
     control = el_control(nthreads = 1)
   )
   wfit2 <- el_glm(y ~ ., family = poisson("sqrt"), data = df, weights = w)
-  expect_equal(wfit@optim, wfit2@optim)
-  expect_equal(wfit@parTests, wfit2@parTests)
+  expect_equal(getOptim(wfit), getOptim(wfit2))
+  expect_equal(sigTests(wfit), sigTests(wfit2))
 })
 
 #' @srrstats {G5.4, G5.4a, G5.5} We perform correctness tests with two different
@@ -232,9 +232,9 @@ test_that("Correctness tests.", {
     -logLR(el_mean(women, par = c(x, 150)))
   }
   out2 <- optim(60, one_dim_function, method = "Brent", lower = 58, upper = 72)
-  expect_true(out@optim$convergence)
+  expect_true(conv(out))
   expect_identical(out2$convergence, 0L)
-  expect_equal(unname(out@optim$par[1]), out2$par, tolerance = 1e-07)
+  expect_equal(unname(getOptim(out)$par[1]), out2$par, tolerance = 1e-07)
   set.seed(65456)
   n <- 100
   x <- matrix(rnorm(n * 2), ncol = 2)
@@ -244,9 +244,9 @@ test_that("Correctness tests.", {
     -logLR(el_mean(x, par = c(y, 0)))
   }
   out4 <- optim(-2, one_dim_function2, method = "Brent", lower = -4, upper = 4)
-  expect_true(out3@optim$convergence)
+  expect_true(conv(out3))
   expect_identical(out4$convergence, 0L)
-  expect_equal(out3@optim$par[1], out4$par, tolerance = 1e-07)
+  expect_equal(getOptim(out3)$par[1], out4$par, tolerance = 1e-07)
 })
 
 #' @srrstats {RE7.1, RE7.1a} We first simulate a design matrix with fixed
@@ -364,9 +364,9 @@ test_that("Noise susceptibility tests.", {
   fit <- el_lm(mpg ~ cyl + disp, data = mtcars)
   lhs <- list(matrix(c(1, 33, 0), nrow = 1), matrix(c(0, 1, -100), nrow = 1))
   set.seed(5246356)
-  cv <- elmt(fit, lhs = lhs)@cv
+  cv <- critVal(elmt(fit, lhs = lhs))
   set.seed(195646)
-  cv2 <- elmt(fit, lhs = lhs)@cv
+  cv2 <- critVal(elmt(fit, lhs = lhs))
   expect_equal(cv, cv2, tolerance = 1e-02)
 })
 
@@ -382,8 +382,8 @@ test_that(
       family = gaussian("inverse"),
       data = mtcars
     )
-    expect_equal(fit@optim, fit2@optim)
-    expect_equal(fit@parTests, fit2@parTests)
+    expect_equal(getOptim(fit), getOptim(fit2))
+    expect_equal(sigTests(fit), sigTests(fit2))
     wfit <- el_glm(mpg ~ disp + hp + wt,
       family = gaussian("inverse"), data = mtcars, weights = gear,
       control = el_control(nthreads = 1)
@@ -392,7 +392,91 @@ test_that(
       family = gaussian("inverse"),
       data = mtcars, weights = gear
     )
-    expect_equal(wfit@optim, wfit2@optim)
-    expect_equal(wfit@parTests, wfit2@parTests)
+    expect_equal(getOptim(wfit), getOptim(wfit2))
+    expect_equal(sigTests(wfit), sigTests(wfit2))
   }
 )
+
+#' @srrstats {G5.6, G5.6a, G5.6b} `el_lm()` returns the expected coefficients
+#'   (`rep(1, p)`) for a simulated data set generated from a linear model. The
+#'   parameters used are `n = 1e+05`, `p = 3`, and `tolerance = 1e-02`, with
+#'   three different seeds.
+test_that("Parameter recovery tests.", {
+  skip_on_cran()
+  set.seed(5524325)
+  n <- 1e+05
+  p <- 3
+  e <- rnorm(n)
+  b <- rep(1, p)
+  x <- matrix(rnorm(n * p), ncol = p)
+  y <- x %*% b + e
+  df <- data.frame(y, x)
+  fit <- el_lm(y ~ -1 + ., df)
+  expect_equal(max(abs(coef(fit))), 1, tolerance = 1e-02)
+  set.seed(55267654)
+  x2 <- matrix(rnorm(n * p), ncol = p)
+  y2 <- x2 %*% b + e
+  df2 <- data.frame(y2, x2)
+  fit2 <- el_lm(y2 ~ -1 + ., df2)
+  expect_equal(max(abs(coef(fit2))), 1, tolerance = 1e-02)
+  set.seed(0841)
+  x3 <- matrix(rnorm(n * p), ncol = p)
+  y3 <- x3 %*% b + e
+  df3 <- data.frame(y3, x3)
+  fit3 <- el_lm(y3 ~ -1 + ., df3)
+  expect_equal(max(abs(coef(fit3))), 1, tolerance = 1e-02)
+})
+
+test_that("`el_glm()` (quasipoisson - log).", {
+  skip_on_cran()
+  set.seed(525)
+  n <- 200
+  p <- 3
+  b <- rnorm(p, sd = 0.5)
+  x <- matrix(rnorm(n * p), ncol = p)
+  w <- rep(c(1, 2), times = 100)
+  l <- -0.4 + x %*% as.vector(b)
+  mu <- exp(l)
+  y <- vapply(mu, FUN = function(x) rpois(1, x), FUN.VALUE = integer(1)) +
+    sample(1:10, n, replace = TRUE)
+  df <- data.frame(y, x)
+  fit <- el_glm(y ~ .,
+    family = quasipoisson("log"), data = df,
+    control = el_control(tol = 1e-05, th = 1000)
+  )
+  wfit <- el_glm(y ~ .,
+    family = quasipoisson("log"), data = df, weights = w,
+    control = el_control(tol = 1e-05, th = 1000)
+  )
+  lhs <- list(
+    matrix(c(0, 1, 1, 0), nrow = 1),
+    matrix(c(0, 0, 1, 1), nrow = 1)
+  )
+  rhs <- c(0, -0.5)
+  expect_s4_class(elmt(fit, rhs = rhs, lhs = lhs), "ELMT")
+  expect_s4_class(elmt(wfit, rhs = rhs, lhs = lhs), "ELMT")
+})
+
+test_that("`el_pairwise()` (deprecated).", {
+  skip_on_cran()
+  out1 <- suppressWarnings(el_pairwise(clo ~ trt | blk,
+    data = clothianidin, B = 500
+  ))
+  out2 <- suppressWarnings(el_pairwise(clo ~ trt | blk,
+    data = clothianidin, control = "Naked", method = "NB", B = 500, nthreads = 2
+  ))
+  expect_output(print(out1))
+  expect_output(print(out2))
+  expect_error(suppressWarnings(el_pairwise(clo ~ blk | trt,
+    data = clothianidin, B = 500
+  )))
+  df <- clothianidin[1:25, ]
+  df$blk <- droplevels(df$blk)
+  df$trt <- droplevels(df$trt)
+  out3 <- suppressWarnings(el_pairwise(clo ~ trt | blk, data = df, B = 1))
+  expect_output(print(out3))
+  out4 <- suppressWarnings(el_pairwise(clo ~ trt | blk,
+    data = df, method = "NB", B = 1
+  ))
+  expect_output(print(out3))
+})

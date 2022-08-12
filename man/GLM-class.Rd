@@ -6,9 +6,17 @@
 \alias{GLM}
 \title{\linkS4class{GLM} class}
 \description{
-S4 class for generalized linear models with empirical likelihood. It inherits
-from \linkS4class{LM} class.
+S4 class for generalized linear models. It inherits from \linkS4class{LM}
+class.
 }
+\section{Slots}{
+
+\describe{
+\item{\code{family}}{A \code{\link{family}} object used.}
+
+\item{\code{dispersion}}{A single numeric for the estimated dispersion parameter.}
+}}
+
 \examples{
 showClass("GLM")
 }

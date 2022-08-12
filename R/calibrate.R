@@ -12,29 +12,27 @@
 #' @return A numeric vector of length two for the critical value and the
 #'   p-value.
 #' @noRd
-#' @importFrom stats pf qf quantile
 calibrate <- function(calibrate, alpha, statistic, p, par, object, control) {
   switch(calibrate,
     "chisq" = {
       c(
-        cv = qchisq(p = 1 - alpha, df = p),
-        pval = pchisq(q = statistic, df = p, lower.tail = FALSE)
+        cv = qchisq(1 - alpha, df = p),
+        pval = pchisq(statistic, df = p, lower.tail = FALSE)
       )
     },
     "boot" = {
       compute_bootstrap_calibration(
         alpha, statistic, control@b, control@seed, control@nthreads,
-        getMethodEL(object), getDataMatrix(object), par, control@maxit_l,
+        getMethodEL(object), getData(object), par, control@maxit_l,
         control@tol_l, control@th, getWeights(object)
       )
     },
     "f" = {
-      n <- nrow(getDataMatrix(object))
+      n <- nrow(getData(object))
       c(
-        cv = qf(p = 1 - alpha, df1 = p, df2 = n - p) * (p * (n - 1)) / (n - p),
-        pval = pf(
-          q = statistic * (n - p) / (p * (n - 1)), df1 = p,
-          df2 = n - p, lower.tail = FALSE
+        cv = qf(1 - alpha, df1 = p, df2 = n - p) * (p * (n - 1)) / (n - p),
+        pval = pf(statistic * (n - p) / (p * (n - 1)),
+          df1 = p, df2 = n - p, lower.tail = FALSE
         )
       )
     }

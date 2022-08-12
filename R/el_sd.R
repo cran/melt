@@ -17,9 +17,8 @@
 #' @examples
 #' set.seed(4097)
 #' x <- rnorm(100, mean = -2, sd = 3)
-#' el_sd(x, mean = -2, sd = 3.5)
-#' @importFrom methods is new
-#' @importFrom stats pchisq setNames
+#' w <- rep(c(1, 2), each = 50)
+#' el_sd(x, mean = -2, sd = 3.5, weights = w)
 #' @export
 el_sd <- function(x, mean, sd, weights = NULL, control = el_control()) {
   nm <- names(x)
@@ -59,7 +58,7 @@ el_sd <- function(x, mean, sd, weights = NULL, control = el_control()) {
     optim = optim, logp = setNames(out$logp, names(mm)), logl = out$logl,
     loglr = out$loglr, statistic = out$statistic, df = 1L,
     pval = pchisq(out$statistic, df = 1L, lower.tail = FALSE), nobs = n,
-    npar = 1L, weights = w, data = if (control@keep_data) mm else NULL,
-    coefficients = est, method = "sd"
+    npar = 1L, weights = w, coefficients = est, method = "sd",
+    data = if (control@keep_data) mm else NULL
   )
 }

@@ -27,17 +27,12 @@
 #' el_mean(x, par)
 #'
 #' ## Vector mean
-#' x <- matrix(rnorm(100), ncol = 2)
-#' par <- c(0, 0)
-#' el_mean(x, par)
+#' data("faithful")
+#' el_mean(faithful, par = c(3.5, 70))
 #'
 #' ## Weighted data
-#' x <- matrix(rnorm(100), ncol = 2)
-#' par <- c(0, 0)
-#' w <- rep(c(1, 2), each = 25)
-#' el_mean(x, par, w)
-#' @importFrom methods is new
-#' @importFrom stats pchisq setNames
+#' w <- rep(c(1, 2), each = nrow(faithful) / 2)
+#' el_mean(faithful, par = c(3.5, 70), weights = w)
 #' @export
 #' @srrstats {G2.0, G2.0a} Assertions on lengths of inputs are clarified
 #'   throughout the package documentation.
@@ -84,7 +79,7 @@ el_mean <- function(x,
     optim = optim, logp = setNames(out$logp, rownames(mm)), logl = out$logl,
     loglr = out$loglr, statistic = out$statistic, df = p,
     pval = pchisq(out$statistic, df = p, lower.tail = FALSE), nobs = n,
-    npar = p, weights = w, data = if (control@keep_data) mm else NULL,
-    coefficients = est, method = "mean"
+    npar = p, weights = w, coefficients = est, method = "mean",
+    data = if (control@keep_data) mm else NULL
   )
 }

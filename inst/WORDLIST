@@ -1,3 +1,4 @@
+AMC
 Adimari
 BH
 Behaviour
@@ -7,10 +8,11 @@ CRC
 Clothianidin
 Codecov
 Cui
+DMS
 Details’
 EL
 Eigen
-Eigen’
+FWER
 Github
 Guolo
 Ibrahim
@@ -23,8 +25,7 @@ PLOS
 Qin
 Raphson
 RcppEigen
-RcppEigen’
-RcppProgress
+SES
 SX
 Sinica
 Statistica
@@ -32,11 +33,13 @@ Xoshiro
 Zhang
 Zhao
 Zhu
+arXiv
 arxiv
+blk
+clo
 clothianidin
 coercible
 dqrng
-minimizations
 nonconvex
 optimality
 parallelization
@@ -44,4 +47,5 @@ stars’
 studentization
 th
 tidyverse
+trt
 µg

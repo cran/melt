@@ -11,26 +11,24 @@ S4 class for linear models with empirical likelihood. It inherits from
 \linkS4class{CEL} class.
 }
 \details{
-If there is no intercept in a model, \code{optim} slot need to be
+If there is no intercept in a model, the \code{optim} slot need to be
 understood in terms of \linkS4class{EL} class since constrained
 optimization is not involved in the overall test.
 }
 \section{Methods (by generic)}{
 \itemize{
-\item \code{formula}: Extracts the symbolic model formula used in \code{\link[=el_lm]{el_lm()}} or
+\item \code{formula(LM)}: Extracts the symbolic model formula used in \code{\link[=el_lm]{el_lm()}} or
 \code{\link[=el_glm]{el_glm()}}.
-}}
 
+}}
 \section{Slots}{
 
 \describe{
-\item{\code{parTests}}{A list with the test results for each parameter:
-\itemize{
-\item{\code{statistic } }{A numeric vector of the empirical likelihood
-ratio statistics.}
-\item{\code{convergence } }{A logical vector of the convergence status of
-tests for each parameter.}
-}}
+\item{\code{sigTests}}{A list with the results of significance tests.}
+
+\item{\code{call}}{A matched call.}
+
+\item{\code{terms}}{A \code{\link{terms}} object used.}
 
 \item{\code{misc}}{A list with miscellaneous outputs from a model fitting function.
 They are used in other generics and methods.}

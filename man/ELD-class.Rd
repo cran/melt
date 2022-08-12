@@ -8,12 +8,6 @@
 \description{
 S4 class for empirical likelihood displacement.
 }
-\section{Slots}{
-
-\describe{
-\item{\code{eld}}{A numeric vector of empirical likelihood displacement values.}
-}}
-
 \examples{
 showClass("ELD")
 }

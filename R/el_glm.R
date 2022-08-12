@@ -27,16 +27,16 @@
 #'   and is passed to [glm.fit()].
 #' @param ... Additional arguments to be passed to [glm.control()].
 #' @details The available families and link functions are as follows:
-#'   \itemize{
-#'   \item{`gaussian`}{: `identity`, `log`, and `inverse`.}
-#'   \item{`bimomial`}{: `logit`, `probit`, and `log`.}
-#'   \item{`poisson`}{: `log`, `identity`, and `sqrt`.}
-#'   }
+#'   * `gaussian`: `"identity"`, `"log"`, and `"inverse"`.
+#'   * `bimomial`: `"logit"`, `"probit"`, and `"log"`.
+#'   * `poisson`: `"log"`, `"identity"`, and `"sqrt"`.
+#'   * `quasipoisson`: `"log"`.
+#'
 #'   Included in the tests are the overall test with
 #'   \deqn{H_0: \beta_1 = \beta_2 = \cdots = \beta_{p-1} = 0,}
 #'   and the tests for each parameter with
 #'   \deqn{H_{0j}: \beta_j = 0,\ j = 0, \dots, p-1.}
-#'   The test results are returned as `optim` and `parTests`, respectively.
+#'   The test results are returned as `optim` and `sigTests`, respectively.
 #' @return An object of class of \linkS4class{GLM}.
 #' @references Chen SX, Cui H (2003).
 #'   “An Extended Empirical Likelihood for Generalized Linear Models.”
@@ -55,12 +55,10 @@
 #' y <- rbinom(n, 1, mu)
 #' df <- data.frame(y, x, x2)
 #' fit <- el_glm(y ~ x + x2,
-#'   family = binomial, df, weights = NULL,
-#'   na.action = na.omit, start = NULL, etastart = NULL, mustart = NULL
+#'   family = binomial, data = df, weights = NULL, na.action = na.omit,
+#'   start = NULL, etastart = NULL, mustart = NULL
 #' )
 #' summary(fit)
-#' @importFrom stats gaussian glm.fit model.extract model.weights pchisq
-#'   setNames
 #' @export
 #' @srrstats {G2.14, G2.14a, RE2.1, RE2.2} Missing values are handled by the
 #'   `na.action` argument via `na.cation()`. `Inf` values are not allowed and
@@ -143,9 +141,16 @@ el_glm <- function(formula,
     "`el_glm()` does not support grouped data." = (isFALSE(is.matrix(Y)))
   )
   if (is.empty.model(mt)) {
-    X <- matrix(, NROW(Y), 0L)
-    return(new("GLM",
-      call = cl, terms = mt,
+    X <- matrix(numeric(0), NROW(Y), 0L)
+    if (grepl("quasi", family$family)) {
+      class <- "QGLM"
+      npar <- 1L
+    } else {
+      class <- "GLM"
+      npar <- 0L
+    }
+    return(new(class,
+      family = family, call = cl, terms = mt,
       misc = list(
         formula = formula, offset = NULL, control = glm_control,
         intercept = FALSE, method = "glm.fit", contrasts = attr(X, "contrasts"),
@@ -154,7 +159,7 @@ el_glm <- function(formula,
       optim = list(
         par = numeric(), lambda = numeric(), iterations = integer(),
         convergence = logical()
-      )
+      ), df = 0L, nobs = nrow(X), npar = npar, method = NA_character_
     ))
   } else {
     X <- model.matrix(mt, mf, NULL)
@@ -167,7 +172,7 @@ el_glm <- function(formula,
   )
   mustart <- model.extract(mf, "mustart")
   etastart <- model.extract(mf, "etastart")
-  intercept <- attr(mt, "intercept") > 0L
+  intercept <- as.logical(attr(mt, "intercept"))
   fit <- glm.fit(
     x = X, y = Y, weights = w, start = start, etastart = etastart,
     mustart = mustart, offset = NULL, family = family,
@@ -181,12 +186,36 @@ el_glm <- function(formula,
   p <- ncol(X)
   w <- validate_weights(w, n)
   names(w) <- if (length(w) != 0L) names(Y) else NULL
-  out <- test_GLM(
-    method, mm, fit$coefficients, intercept, control@maxit, control@maxit_l,
-    control@tol, control@tol_l,control@step, control@th, control@nthreads, w
-  )
-  optim <- validate_optim(out$optim)
-  names(optim$par) <- pnames
+  if (fit$family$family %in% c("poisson", "binomial")) {
+    dispersion <- 1L
+  } else {
+    yhat <- fitted(fit)
+    if (length(w) == 0L) {
+      dispersion <- sum((fit$y - yhat)^2L / fit$family$variance(yhat)) / n
+    } else {
+      dispersion <- sum(w * ((fit$y - yhat)^2L / fit$family$variance(yhat))) / n
+    }
+  }
+  if (grepl("quasi", method)) {
+    class <- "QGLM"
+    npar <- p + 1L
+    out <- test_QGLM(
+      method, mm, c(fit$coefficients, dispersion), intercept, control@maxit,
+      control@maxit_l, control@tol, control@tol_l, control@step, control@th,
+      control@nthreads, w
+    )
+    optim <- validate_optim(out$optim)
+    names(optim$par) <- c(pnames, "phi")
+  } else {
+    class <- "GLM"
+    npar <- p
+    out <- test_GLM(
+      method, mm, fit$coefficients, intercept, control@maxit, control@maxit_l,
+      control@tol, control@tol_l, control@step, control@th, control@nthreads, w
+    )
+    optim <- validate_optim(out$optim)
+    names(optim$par) <- pnames
+  }
   df <- if (intercept && p > 1L) p - 1L else p
   pval <- pchisq(out$statistic, df = df, lower.tail = FALSE)
   if (control@verbose) {
@@ -195,18 +224,19 @@ el_glm <- function(formula,
       if (out$optim$convergence) "achieved." else "failed."
     )
   }
-  new("GLM",
-    parTests = lapply(out$par_tests, setNames, pnames), call = cl, terms = mt,
+  new(class,
+    family = fit$family, dispersion = dispersion,
+    sigTests = lapply(out$sig_tests, setNames, pnames), call = cl, terms = mt,
     misc = list(
-      family = fit$family, iter = fit$iter, converged = fit$converged,
-      boundary = fit$boundary, formula = formula, offset = NULL,
-      control = glm_control, intercept = intercept, method = "glm.fit",
+      iter = fit$iter, converged = fit$converged, boundary = fit$boundary,
+      formula = formula, offset = NULL, control = glm_control,
+      intercept = intercept, method = "glm.fit",
       contrasts = attr(X, "contrasts"), xlevels = .getXlevels(mt, mf),
       na.action = attr(mf, "na.action")
     ),
     optim = optim, logp = setNames(out$logp, names(Y)), logl = out$logl,
     loglr = out$loglr, statistic = out$statistic, df = df, pval = pval,
-    nobs = n, npar = p, weights = w, data = if (control@keep_data) mm else NULL,
-    coefficients = fit$coefficients, method = method
+    nobs = n, npar = npar, weights = w, coefficients = fit$coefficients,
+    method = method, data = if (control@keep_data) mm else NULL
   )
 }

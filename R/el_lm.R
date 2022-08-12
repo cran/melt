@@ -27,7 +27,7 @@
 #'   where \eqn{\theta = (\theta_0, \dots, \theta_{p-1})} is an unknown
 #'   \eqn{p}-dimensional parameter and the errors \eqn{\epsilon_i} are
 #'   independent random variables that satisfy
-#'   \eqn{\textnormal{E}(\epsilon_i | X_i)} = 0. We assume that the errors have
+#'   \eqn{\textrm{E}(\epsilon_i | X_i)} = 0. We assume that the errors have
 #'   finite conditional variance. Then the least square estimator of
 #'   \eqn{\theta} solves the following estimating equation:
 #'   \deqn{\sum_{i = 1}^n(Y_i - X_i^\top \theta)X_i = 0.}
@@ -41,7 +41,7 @@
 #'   \deqn{H_0: \theta_1 = \theta_2 = \cdots = \theta_{p-1} = 0,}
 #'   and significance tests for each parameter with
 #'   \deqn{H_{0j}: \theta_j = 0,\ j = 0, \dots, p-1.}
-#'   The test results are returned as `optim` and `parTests`, respectively.
+#'   The test results are returned as `optim` and `sigTests`, respectively.
 #' @return An object of class of \linkS4class{LM}.
 #' @references Owen A (1991).
 #'   “Empirical Likelihood for Linear Models.”
@@ -60,8 +60,6 @@
 #' df[1, 2] <- NA
 #' fit3 <- el_lm(y ~ x, df, na.action = na.omit)
 #' summary(fit3)
-#' @importFrom stats .getXlevels is.empty.model lm.fit lm.wfit model.matrix
-#'   model.response model.weights pchisq setNames
 #' @export
 #' @srrstats {G2.14, G2.14a, RE2.1, RE2.2} Missing values are handled by the
 #'   `na.action` argument via `na.cation()`. `Inf` values are not allowed and
@@ -124,18 +122,18 @@ el_lm <- function(formula,
     "`el_lm()` does not support multiple responses." = (isFALSE(is.matrix(y)))
   )
   if (is.empty.model(mt)) {
-    x <- NULL
-    mm <- cbind(y, x)
+    x <- matrix(numeric(0), NROW(y), 0L)
     return(new("LM",
       call = cl, terms = mt,
       misc = list(
+        intercept = FALSE,
         xlevels = .getXlevels(mt, mf),
         na.action = attr(mf, "na.action")
       ),
       optim = list(
         par = numeric(), lambda = numeric(), iterations = integer(),
         convergence = logical()
-      )
+      ), df = 0L, nobs = nrow(x), npar = 0L, method = NA_character_
     ))
   } else {
     x <- model.matrix(mt, mf, NULL)
@@ -146,7 +144,7 @@ el_lm <- function(formula,
     }
   }
   pnames <- names(fit$coefficients)
-  intercept <- attr(mt, "intercept")
+  intercept <- as.logical(attr(mt, "intercept"))
   mm <- cbind(y, x)
   n <- nrow(mm)
   p <- ncol(x)
@@ -167,14 +165,14 @@ el_lm <- function(formula,
     )
   }
   new("LM",
-    parTests = lapply(out$par_tests, setNames, pnames), call = cl, terms = mt,
+    sigTests = lapply(out$sig_tests, setNames, pnames), call = cl, terms = mt,
     misc = list(
-      xlevels = .getXlevels(mt, mf),
+      intercept = intercept, xlevels = .getXlevels(mt, mf),
       na.action = attr(mf, "na.action")
     ),
     optim = optim, logp = setNames(out$logp, names(y)), logl = out$logl,
     loglr = out$loglr, statistic = out$statistic, df = df, pval = pval,
-    nobs = n, npar = p, weights = w, data = if (control@keep_data) mm else NULL,
-    coefficients = fit$coefficients, method = "lm"
+    nobs = n, npar = p, weights = w, coefficients = fit$coefficients,
+    method = "lm", data = if (control@keep_data) mm else NULL
   )
 }

@@ -1,3 +1,22 @@
+#' Chi-square statistic
+#'
+#' Extracts chi-square statistic from a model.
+#'
+#' @param object An object that inherit from \linkS4class{EL},
+#'   \linkS4class{ELT}, \linkS4class{ELMT}, or \linkS4class{SummaryLM}.
+#' @param ... Further arguments passed to methods.
+#' @return The form of the value returned by [chisq()] depends on the class of
+#'   its argument.
+#' @seealso [pVal()]
+#' @usage NULL
+#' @examples
+#' data("precip")
+#' fit <- el_mean(precip, par = 40)
+#' chisq(fit)
+#' @exportMethod chisq
+setGeneric("chisq", function(object, ...) standardGeneric("chisq"))
+
+
 #' Model coefficients
 #'
 #' Extracts maximum empirical likelihood estimates from a model.
@@ -114,6 +133,26 @@ setGeneric("confreg", function(object,
 setGeneric("conv", function(object, ...) standardGeneric("conv"))
 
 
+#' Critical value
+#'
+#' Extracts critical value from a model.
+#'
+#' @param object An object that inherit from \linkS4class{ELT} or
+#'   \linkS4class{ELMT}.
+#' @param ... Further arguments passed to methods.
+#' @return A single numeric.
+#' @usage NULL
+#' @examples
+#' ## F-calibrated critical value
+#' set.seed(533414)
+#' x <- rnorm(100)
+#' fit <- el_mean(x, 0)
+#' elt <- elt(fit, rhs = 0.3, calibrate = "f")
+#' critVal(elt)
+#' @exportMethod critVal
+setGeneric("critVal", function(object, ...) standardGeneric("critVal"))
+
+
 #' Empirical likelihood displacement
 #'
 #' Computes empirical likelihood displacement for model diagnostics and outlier
@@ -129,10 +168,10 @@ setGeneric("conv", function(object, ...) standardGeneric("conv"))
 #'   sample with the \eqn{i}th observation deleted and the corresponding
 #'   estimate \eqn{\hat{\theta}_{(i)}}. The empirical likelihood displacement is
 #'   defined by
-#'   \deqn{\textnormal{ELD}_i = 2\{L(\hat{\theta}) - L(\hat{\theta}_{(i)})\}.}
-#'   If \eqn{\textnormal{ELD}_i } is large, then the \eqn{i}th observation is an
+#'   \deqn{\textrm{ELD}_i = 2\{L(\hat{\theta}) - L(\hat{\theta}_{(i)})\}.}
+#'   If \eqn{\textrm{ELD}_i } is large, then the \eqn{i}th observation is an
 #'   influential point and can be inspected as a possible outlier. `eld`
-#'   computes \eqn{\textnormal{ELD}_i } for \eqn{i = 1, \dots, n }.
+#'   computes \eqn{\textrm{ELD}_i } for \eqn{i = 1, \dots, n }.
 #' @return An object of class \linkS4class{ELD}.
 #' @references Lazar NA (2005).
 #'   “Assessing the Effect of Individual Data Points on Inference From Empirical
@@ -256,16 +295,14 @@ setGeneric("elmt", function(object,
 #'
 #'   Depending on the specification of `rhs` and `lhs`, we have the following
 #'   three cases:
-#'   \enumerate{
-#'   \item If both `rhs` and `lhs` are non-`NULL`, the constrained minimization
+#'   1. If both `rhs` and `lhs` are non-`NULL`, the constrained minimization
 #'   is performed with the right-hand side \eqn{r} and the left-hand side
 #'   \eqn{L} as
 #'   \deqn{\inf_{\theta: L\theta = r} l(\theta).}
-#'   \item If `rhs` is `NULL`, \eqn{r} is set to the zero vector as
+#'   1. If `rhs` is `NULL`, \eqn{r} is set to the zero vector as
 #'   \eqn{\inf_{\theta: L\theta = 0} l(\theta)}.
-#'   \item If `lhs` is `NULL`, \eqn{L} is set to the identity matrix and the
+#'   1. If `lhs` is `NULL`, \eqn{L} is set to the identity matrix and the
 #'   problem reduces to evaluating at \eqn{r} as \eqn{l(r)}.
-#'   }
 #'
 #'   `calibrate` specifies the calibration method used. Three methods are
 #'   available: `"chisq"` (chi-square calibration), `"boot"` (bootstrap
@@ -313,7 +350,63 @@ setGeneric("elt", function(object,
 })
 
 
+#' Degrees of freedom
+#'
+#' Extracts degrees of freedom from a model.
+#'
+#' @param object An object that inherit from \linkS4class{EL},
+#'   \linkS4class{ELT}, \linkS4class{logLikEL}, or \linkS4class{SummaryLM}.
+#' @return A single integer.
+#' @usage NULL
+#' @examples
+#' data("faithful")
+#' fit <- el_mean(faithful, par = c(3.5, 70))
+#' getDF(fit)
+#' @exportMethod getDF
+setGeneric("getDF", function(object) standardGeneric("getDF"))
+
+
+#' Optimization results
+#'
+#' Extracts optimization results from a model.
+#'
+#' @param object An object that inherit from \linkS4class{EL} or
+#'   \linkS4class{ELT}.
+#' @param ... Further arguments passed to methods.
+#' @return A list with the following optimization results:
+#'   * `par` A numeric vector of the parameter value. See the documentation of
+#'   \linkS4class{EL} and \linkS4class{CEL}.
+#'   * `lambda` A numeric vector of the Lagrange multipliers.
+#'   * `iterations` A single integer for the number of iterations performed.
+#'   * `convergence` A single logical for the convergence status.
+#' @seealso [sigTests()]
+#' @usage NULL
+#' @examples
+#' data("precip")
+#' fit <- el_mean(precip, par = 40)
+#' getOptim(fit)
+#' @exportMethod getOptim
+setGeneric("getOptim", function(object, ...) standardGeneric("getOptim"))
+
+
 #' Empirical log-likelihood
+#'
+#' Extracts empirical log-likelihood from a model.
+#'
+#' @param object An object that inherit from \linkS4class{EL} or
+#'   \linkS4class{ELT}.
+#' @param ... Further arguments passed to methods.
+#' @return A single numeric.
+#' @usage NULL
+#' @examples
+#' data("precip")
+#' fit <- el_mean(precip, par = 40)
+#' logL(fit)
+#' @exportMethod logL
+setGeneric("logL", function(object, ...) standardGeneric("logL"))
+
+
+#' Maximum empirical log-likelihood
 #'
 #' Extracts empirical log-likelihood from a model evaluated at the estimated
 #'   coefficients.
@@ -349,7 +442,7 @@ setGeneric("logLR", function(object, ...) standardGeneric("logLR"))
 
 #' Number of observations in a model
 #'
-#' Extracts the number of observations from a model.
+#' Extracts number of observations from a model.
 #'
 #' @param object An object that inherit from \linkS4class{EL}.
 #' @param ... Further arguments passed to methods.
@@ -407,6 +500,45 @@ setGeneric("plot", function(x, y, ...) standardGeneric("plot"))
 setGeneric("print", function(x, ...) standardGeneric("print"))
 
 
+#' \eqn{p}-value
+#'
+#' Extracts \eqn{p}-value from a model.
+#'
+#' @param object An object that inherit from \linkS4class{EL},
+#'   \linkS4class{ELT}, or \linkS4class{ELMT}.
+#' @param ... Further arguments passed to methods.
+#' @return The form of the value returned by [pVal()] depends on the class of
+#'   its argument.
+#' @seealso [chisq()]
+#' @usage NULL
+#' @examples
+#' data("precip")
+#' fit <- el_mean(precip, par = 40)
+#' pVal(fit)
+#' @exportMethod pVal
+setGeneric("pVal", function(object, ...) standardGeneric("pVal"))
+
+
+#' Significance tests
+#'
+#' Extracts the results of significance tests from a model.
+#'
+#' @param object An object that inherit from \linkS4class{LM} or
+#'   \linkS4class{SummaryLM}.
+#' @param ... Further arguments passed to methods.
+#' @return The form of the value returned by [sigTests()] depends on the
+#'   class of its argument.
+#' @seealso [getOptim()]
+#' @usage NULL
+#' @examples
+#' data("mtcars")
+#' fit <- el_lm(mpg ~ ., data = mtcars)
+#' sigTests(fit)
+#' sigTests(summary(fit))
+#' @exportMethod sigTests
+setGeneric("sigTests", function(object, ...) standardGeneric("sigTests"))
+
+
 #' Summary methods
 #'
 #' Provides summary methods for objects.
@@ -446,8 +578,8 @@ setGeneric("summary", function(object, ...) standardGeneric("summary"))
 setGeneric("weights", function(object, ...) standardGeneric("weights"))
 
 
-setGeneric("getDataMatrix", function(x) standardGeneric("getDataMatrix"))
-setMethod("getDataMatrix", "EL", function(x) {
+setGeneric("getData", function(x) standardGeneric("getData"))
+setMethod("getData", "EL", function(x) {
   x@data
 })
 

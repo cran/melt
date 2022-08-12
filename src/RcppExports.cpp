@@ -131,6 +131,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// pairwise
+Rcpp::List pairwise(const Eigen::MatrixXd& x, const Eigen::MatrixXd& c, const int control, const int k, const double level, const bool interval, const std::string method, const int B, const int nthreads, const double th, const int maxit, const double abstol);
+RcppExport SEXP _melt_pairwise(SEXP xSEXP, SEXP cSEXP, SEXP controlSEXP, SEXP kSEXP, SEXP levelSEXP, SEXP intervalSEXP, SEXP methodSEXP, SEXP BSEXP, SEXP nthreadsSEXP, SEXP thSEXP, SEXP maxitSEXP, SEXP abstolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type c(cSEXP);
+    Rcpp::traits::input_parameter< const int >::type control(controlSEXP);
+    Rcpp::traits::input_parameter< const int >::type k(kSEXP);
+    Rcpp::traits::input_parameter< const double >::type level(levelSEXP);
+    Rcpp::traits::input_parameter< const bool >::type interval(intervalSEXP);
+    Rcpp::traits::input_parameter< const std::string >::type method(methodSEXP);
+    Rcpp::traits::input_parameter< const int >::type B(BSEXP);
+    Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
+    Rcpp::traits::input_parameter< const double >::type th(thSEXP);
+    Rcpp::traits::input_parameter< const int >::type maxit(maxitSEXP);
+    Rcpp::traits::input_parameter< const double >::type abstol(abstolSEXP);
+    rcpp_result_gen = Rcpp::wrap(pairwise(x, c, control, k, level, interval, method, B, nthreads, th, maxit, abstol));
+    return rcpp_result_gen;
+END_RCPP
+}
 // test_GLM
 Rcpp::List test_GLM(const std::string method, const Eigen::Map<Eigen::MatrixXd>& x, const Eigen::Map<Eigen::VectorXd>& par0, const bool intercept, const int maxit, const int maxit_l, const double tol, const double tol_l, const Rcpp::Nullable<double> step, const Rcpp::Nullable<double> th, const int nthreads, const Eigen::Map<Eigen::ArrayXd>& w);
 RcppExport SEXP _melt_test_GLM(SEXP methodSEXP, SEXP xSEXP, SEXP par0SEXP, SEXP interceptSEXP, SEXP maxitSEXP, SEXP maxit_lSEXP, SEXP tolSEXP, SEXP tol_lSEXP, SEXP stepSEXP, SEXP thSEXP, SEXP nthreadsSEXP, SEXP wSEXP) {
@@ -171,6 +193,28 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
     Rcpp::traits::input_parameter< const Eigen::Map<Eigen::ArrayXd>& >::type w(wSEXP);
     rcpp_result_gen = Rcpp::wrap(test_LM(x, par0, intercept, maxit, maxit_l, tol, tol_l, step, th, nthreads, w));
+    return rcpp_result_gen;
+END_RCPP
+}
+// test_QGLM
+Rcpp::List test_QGLM(const std::string method, const Eigen::Map<Eigen::MatrixXd>& x, const Eigen::Map<Eigen::VectorXd>& par0, const bool intercept, const int maxit, const int maxit_l, const double tol, const double tol_l, const Rcpp::Nullable<double> step, const Rcpp::Nullable<double> th, const int nthreads, const Eigen::Map<Eigen::ArrayXd>& w);
+RcppExport SEXP _melt_test_QGLM(SEXP methodSEXP, SEXP xSEXP, SEXP par0SEXP, SEXP interceptSEXP, SEXP maxitSEXP, SEXP maxit_lSEXP, SEXP tolSEXP, SEXP tol_lSEXP, SEXP stepSEXP, SEXP thSEXP, SEXP nthreadsSEXP, SEXP wSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::string >::type method(methodSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::VectorXd>& >::type par0(par0SEXP);
+    Rcpp::traits::input_parameter< const bool >::type intercept(interceptSEXP);
+    Rcpp::traits::input_parameter< const int >::type maxit(maxitSEXP);
+    Rcpp::traits::input_parameter< const int >::type maxit_l(maxit_lSEXP);
+    Rcpp::traits::input_parameter< const double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< const double >::type tol_l(tol_lSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::Nullable<double> >::type step(stepSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::Nullable<double> >::type th(thSEXP);
+    Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::ArrayXd>& >::type w(wSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_QGLM(method, x, par0, intercept, maxit, maxit_l, tol, tol_l, step, th, nthreads, w));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -251,8 +295,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_melt_compute_confidence_intervals", (DL_FUNC) &_melt_compute_confidence_intervals, 13},
     {"_melt_compute_confidence_region", (DL_FUNC) &_melt_compute_confidence_region, 15},
     {"_melt_compute_generic_EL", (DL_FUNC) &_melt_compute_generic_EL, 5},
+    {"_melt_pairwise", (DL_FUNC) &_melt_pairwise, 12},
     {"_melt_test_GLM", (DL_FUNC) &_melt_test_GLM, 12},
     {"_melt_test_LM", (DL_FUNC) &_melt_test_LM, 11},
+    {"_melt_test_QGLM", (DL_FUNC) &_melt_test_QGLM, 12},
     {"_melt_test_hypothesis", (DL_FUNC) &_melt_test_hypothesis, 12},
     {"_melt_test_multiple_hypotheses", (DL_FUNC) &_melt_test_multiple_hypotheses, 16},
     {"_melt_get_max_threads", (DL_FUNC) &_melt_get_max_threads, 0},

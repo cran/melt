@@ -1,26 +1,24 @@
 #' @rdname eld
-#' @importFrom methods is
 setMethod("eld", "EL", function(object, control = el_control()) {
   stopifnot(
     "`object` has no `data`. Fit the model with `keep_data == TRUE`." =
-      (!is.null(getDataMatrix(object))),
+      (isFALSE(is.null(getData(object)))),
     "Invalid `control` specified." = (is(control, "ControlEL"))
   )
-  new("ELD", eld = compute_ELD(
-    getMethodEL(object), coef(object), getDataMatrix(object), control@maxit_l,
+  new("ELD", .Data = compute_ELD(
+    getMethodEL(object), coef(object), getData(object), control@maxit_l,
     control@tol_l, control@th, control@nthreads, getWeights(object)
   ))
 })
 
 #' @rdname eld
-#' @importFrom methods is
 setMethod("eld", "GLM", function(object, control = el_control()) {
   stopifnot(
     "`object` has no `data`. Fit the model with `keep_data == TRUE`." =
-      (!is.null(getDataMatrix(object))),
+      (isFALSE(is.null(getData(object)))),
     "Invalid `control` specified." = (is(control, "ControlEL"))
   )
-  mm <- getDataMatrix(object)
+  mm <- getData(object)
   n <- nobs(object)
   x <- mm[, -1L]
   if (is.null(dim(x))) {
@@ -28,16 +26,15 @@ setMethod("eld", "GLM", function(object, control = el_control()) {
   }
   y <- mm[, 1L]
   w <- weights(object)
-  glm_family <- object@misc$family
   glm_control <- object@misc$control
   intercept <- object@misc$intercept
-  new("ELD", eld = vapply(seq_len(n), function(i) {
+  new("ELD", .Data = vapply(seq_len(n), function(i) {
     fit <- suppressWarnings(glm.fit(
       x = x[-i, ], y = y[-i], weights = w[-i], offset = NULL,
-      family = glm_family, control = glm_control, intercept = intercept,
+      family = object@family, control = glm_control, intercept = intercept,
       singular.ok = FALSE
     ))
-    -2 * n * logLR(elt(object, rhs = fit$coefficients, control = control))
+    - 2 * n * logLR(elt(object, rhs = fit$coefficients, control = control))
   }, numeric(1L)))
 })
 

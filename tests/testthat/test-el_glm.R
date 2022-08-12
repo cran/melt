@@ -22,6 +22,10 @@ test_that("Invalid `family`.", {
     family = inverse.gaussian("identity"),
     data = airquality
   ))
+  expect_error(el_glm(carb ~ .,
+    family = quasipoisson("identity"),
+    data = mtcars
+  ))
 })
 
 test_that("Invalid `data`.", {
@@ -51,12 +55,10 @@ test_that("Invalid `control`.", {
 })
 
 test_that("Empty model.", {
-  optcfg <- el_control(tol = 1e-08, th = 1e+10)
-  fit <- el_glm(wool ~ 0,
-    family = binomial, data = warpbreaks,
-    control = optcfg
-  )
+  fit <- el_glm(wool ~ 0, family = binomial, data = warpbreaks)
   expect_output(print(summary(fit)))
+  fit2 <- el_glm(gear ~ 0, family = quasipoisson("log"), data = mtcars)
+  expect_output(print(summary(fit2)))
 })
 
 test_that("Probabilities add up to 1.", {
@@ -82,8 +84,8 @@ test_that("conversion between `loglik` and `loglr`.", {
   )
   n <- nrow(warpbreaks)
   w <- weights(wfit)
-  expect_equal(fit@logl + n * log(n), logLR(fit))
-  expect_equal(wfit@logl + sum(w * (log(n) - log(w))), logLR(wfit))
+  expect_equal(logL(fit) + n * log(n), logLR(fit))
+  expect_equal(logL(wfit) + sum(w * (log(n) - log(w))), logLR(wfit))
 })
 
 test_that("No intercept.", {
@@ -103,4 +105,41 @@ test_that("`verbose` == TRUE in `el_control()`.", {
   expect_message(el_glm(wool ~ breaks,
     family = binomial, data = warpbreaks, control = el_control(verbose = TRUE)
   ))
+})
+
+test_that("`family` == `quasipoisson`.", {
+  fit <- el_glm(carb ~ .,
+    family = quasipoisson("log"), data = mtcars,
+    control = el_control(tol = 1e-04, th = 1000)
+  )
+  expect_s4_class(fit, "QGLM")
+})
+
+test_that("`print()` method.", {
+  fit <- el_glm(wool ~ -1 + ., family = binomial, data = warpbreaks)
+  out <- summary(fit)
+  expect_output(print(out))
+  expect_output(show(out))
+  out@aliased <- c(TRUE, TRUE, TRUE, TRUE)
+  expect_output(print(out))
+  df2 <- warpbreaks
+  df2[1, 1] <- NA
+  fit2 <- el_glm(wool ~ -1 + ., family = binomial, data = df2)
+  out2 <- summary(fit2)
+  expect_output(print(out2))
+  fit3 <- el_glm(gear ~ mpg + cyl + disp,
+    family = quasipoisson("log"), data = mtcars
+  )
+  out3 <- summary(fit3)
+  expect_output(print(out3))
+  expect_output(show(out3))
+  out3@aliased <- c(TRUE, TRUE, TRUE, TRUE)
+  expect_output(print(out3))
+  df3 <- mtcars
+  df3[1, 1] <- NA
+  fit4 <- el_glm(gear ~ mpg + cyl + disp,
+    family = quasipoisson("log"), data = df3
+  )
+  out4 <- summary(fit4)
+  expect_output(print(out4))
 })
