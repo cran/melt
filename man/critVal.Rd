@@ -11,7 +11,7 @@
 \S4method{critVal}{ELMT}(object, ...)
 }
 \arguments{
-\item{object}{An object that inherit from \linkS4class{ELT} or
+\item{object}{An object that inherits from \linkS4class{ELT} or
 \linkS4class{ELMT}.}
 
 \item{...}{Further arguments passed to methods.}
@@ -24,9 +24,11 @@ Extracts critical value from a model.
 }
 \examples{
 ## F-calibrated critical value
-set.seed(533414)
-x <- rnorm(100)
-fit <- el_mean(x, 0)
-elt <- elt(fit, rhs = 0.3, calibrate = "f")
+data("precip")
+fit <- el_mean(precip, 30)
+elt <- elt(fit, rhs = 34, calibrate = "f")
 critVal(elt)
+}
+\seealso{
+\linkS4class{ELT}, \linkS4class{ELMT}
 }

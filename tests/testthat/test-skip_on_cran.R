@@ -1,3 +1,30 @@
+test_that("Bootstrap calibration for `elt()`.", {
+  fit <- el_mean(precip, par = 60)
+  fit2 <- el_glm(gear ~ 1,
+    family = quasipoisson("log"), data = mtcars
+  )
+  fit3 <- el_glm(gear ~ mpg + disp,
+    family = quasipoisson("identity"), data = mtcars, weights = wt
+  )
+  fit4 <- el_sd(women$height, mean = 65, sd = 5)
+  fit5 <- el_lm(fruit ~ trt, data = thiamethoxam)
+  fit6 <- el_glm(fruit ~ trt, family = gaussian("log"), data = thiamethoxam)
+  fit7 <- el_glm(fruit ~ trt, family = gaussian("inverse"), data = thiamethoxam)
+  fit8 <- el_glm(gear ~ mpg + disp, family = poisson("sqrt"), data = mtcars)
+  fit9 <- el_glm(wool ~ ., family = binomial("logit"), data = warpbreaks)
+  fit10 <- el_glm(wool ~ ., family = binomial("probit"), data = warpbreaks)
+  expect_s4_class(elt(fit, rhs = 65, calibrate = "boot"), "ELT")
+  expect_s4_class(elt(fit2, rhs = coef(fit2), calibrate = "boot"), "ELT")
+  expect_s4_class(elt(fit3, rhs = coef(fit3), calibrate = "boot"), "ELT")
+  expect_s4_class(elt(fit4, rhs = coef(fit4), calibrate = "boot"), "ELT")
+  expect_s4_class(elt(fit5, rhs = coef(fit5), calibrate = "boot"), "ELT")
+  expect_s4_class(elt(fit6, rhs = coef(fit6), calibrate = "boot"), "ELT")
+  expect_s4_class(elt(fit7, rhs = coef(fit7), calibrate = "boot"), "ELT")
+  expect_s4_class(elt(fit8, rhs = coef(fit8), calibrate = "boot"), "ELT")
+  expect_s4_class(elt(fit9, rhs = coef(fit9), calibrate = "boot"), "ELT")
+  expect_s4_class(elt(fit10, rhs = coef(fit10), calibrate = "boot"), "ELT")
+})
+
 test_that("Parallel computation yields the same results (gaussian - log).", {
   skip_on_cran()
   set.seed(23)
@@ -41,7 +68,7 @@ test_that("Parallel computation yields the same results (binomial - logit).", {
   w <- rep(c(1, 2), times = 50)
   l <- -1 + x %*% as.vector(b)
   mu <- 1 / (1 + exp(-l))
-  y <- vapply(mu, FUN = function(x) rbinom(1, 1, x), FUN.VALUE = integer(1))
+  y <- vapply(mu, FUN = function(x) rbinom(1, 1, x), FUN.VALUE = integer(1L))
   df <- data.frame(y, x)
   fit <- el_glm(y ~ .,
     family = binomial("logit"), data = df,
@@ -69,7 +96,7 @@ test_that("Parallel computation yields the same results (binomial - probit).", {
   w <- rep(c(1, 2), times = 50)
   l <- 1.5 + x %*% as.vector(b)
   mu <- pnorm(l)
-  y <- vapply(mu, FUN = function(x) rbinom(1, 1, x), FUN.VALUE = integer(1))
+  y <- vapply(mu, FUN = function(x) rbinom(1, 1, x), FUN.VALUE = integer(1L))
   df <- data.frame(y, x)
   fit <- el_glm(y ~ .,
     family = binomial("probit"), data = df,
@@ -97,7 +124,7 @@ test_that("Parallel computation yields the same results (binomial - log).", {
   w <- rep(c(1, 1.0005), times = 50)
   l <- -3 + x %*% as.vector(b)
   mu <- exp(l)
-  y <- vapply(mu, FUN = function(x) rbinom(1, 1, x), FUN.VALUE = integer(1))
+  y <- vapply(mu, FUN = function(x) rbinom(1, 1, x), FUN.VALUE = integer(1L))
   df <- data.frame(y, x)
   fit <- el_glm(y ~ .,
     family = binomial("log"), data = df,
@@ -125,7 +152,7 @@ test_that("Parallel computation yields the same results (poisson - log).", {
   w <- rep(c(1, 2), times = 50)
   l <- -2 + x %*% as.vector(b)
   mu <- exp(l)
-  y <- vapply(mu, FUN = function(x) rpois(1, x), FUN.VALUE = integer(1))
+  y <- vapply(mu, FUN = function(x) rpois(1, x), FUN.VALUE = integer(1L))
   df <- data.frame(y, x)
   fit <- el_glm(y ~ .,
     family = poisson("log"), data = df,
@@ -155,7 +182,7 @@ test_that(
     w <- rep(c(1, 2), times = 50)
     l <- 3 + x %*% as.vector(b)
     mu <- l
-    y <- vapply(mu, FUN = function(x) rpois(1, x), FUN.VALUE = integer(1))
+    y <- vapply(mu, FUN = function(x) rpois(1, x), FUN.VALUE = integer(1L))
     df <- data.frame(y, x)
     fit <- el_glm(y ~ .,
       family = poisson("identity"), data = df,
@@ -184,7 +211,7 @@ test_that("Parallel computation yields the same results (poisson - sqrt).", {
   w <- rep(c(1, 2), times = 50)
   l <- 0.5 + x %*% as.vector(b)
   mu <- l^2
-  y <- vapply(mu, FUN = function(x) rpois(1, x), FUN.VALUE = integer(1))
+  y <- vapply(mu, FUN = function(x) rpois(1, x), FUN.VALUE = integer(1L))
   df <- data.frame(y, x)
   fit <- el_glm(y ~ .,
     family = poisson("sqrt"), data = df,
@@ -202,28 +229,6 @@ test_that("Parallel computation yields the same results (poisson - sqrt).", {
   expect_equal(sigTests(wfit), sigTests(wfit2))
 })
 
-#' @srrstats {G5.4, G5.4a, G5.5} We perform correctness tests with two different
-#'   data sets; one is the `women` data set from the `datasets` package and the
-#'   other is simulated. `set.seed()` is used for the simulated data.
-#'   Specifically, we consider the correctness of `elt()`, one of the main
-#'   functions in the package. This function performs a constrained optimization
-#'   of empirical likelihood. Since this is the first implementation of using
-#'   projected gradient descent to the nested optimization of empirical
-#'   likelihood, we consider a very simple problem with only two parameters.
-#'   The hypothesis states that the second parameter in the model is some fixed
-#'   number (150 for the `women` and 0 for the simulated data set). Then the
-#'   optimization problem reduces to finding an optimal value for the first
-#'   parameter, and this can be done using `optim()` function in the `stats`
-#'   package. We test whether the `eld()` and the `optim()` produces the same
-#'   results in terms of the solution and the convergence status. The tolerance
-#'   for comparing floating point numbers is set to `1e-07`, which we used
-#'   throughout all unit tests in the package. The threshold value `th` for
-#'   empirical likelihood calculation is set to a large number `1e+10`. This
-#'   prevents the optimization routine from exiting early when large empirical
-#'   likelihood value is encountered. Note that it serves as a safeguard and
-#'   does not affect the correctness of the test. No further manual
-#'   specification of the control parameters are made in `el_control()` or
-#'   `optim()`.
 test_that("Correctness tests.", {
   skip_on_cran()
   fit <- el_mean(women, par = colMeans(women))
@@ -249,10 +254,6 @@ test_that("Correctness tests.", {
   expect_equal(getOptim(out3)$par[1], out4$par, tolerance = 1e-07)
 })
 
-#' @srrstats {RE7.1, RE7.1a} We first simulate a design matrix with fixed
-#'   coefficients. Then two response vectors `y1` and `y2` are generated, where
-#'   `y1` has no noise while some noise is added to `y2`. Fitting a model using
-#'   `el_lm()` is faster with `y1` than with `y2`.
 test_that("Exact relationships between predictor and response.", {
   skip_on_cran()
   set.seed(311116)
@@ -279,7 +280,7 @@ test_that("`el_glm()` (binomial - probit).", {
   w <- rep(c(1, 2), times = 50)
   l <- 1.5 + x %*% as.vector(b)
   mu <- pnorm(l)
-  y <- vapply(mu, FUN = function(x) rbinom(1, 1, x), FUN.VALUE = integer(1))
+  y <- vapply(mu, FUN = function(x) rbinom(1, 1, x), FUN.VALUE = integer(1L))
   df <- data.frame(y, x)
   fit <- el_glm(y ~ ., family = binomial("probit"), data = df)
   wfit <- el_glm(y ~ ., family = binomial("probit"), data = df, weights = w)
@@ -301,7 +302,7 @@ test_that("`el_glm()` (binomial - log).", {
   w <- rep(c(1, 1.0005), times = 50)
   l <- -3 + x %*% as.vector(b)
   mu <- exp(l)
-  y <- vapply(mu, FUN = function(x) rbinom(1, 1, x), FUN.VALUE = integer(1))
+  y <- vapply(mu, FUN = function(x) rbinom(1, 1, x), FUN.VALUE = integer(1L))
   df <- data.frame(y, x)
   fit <- el_glm(y ~ ., family = binomial("log"), data = df)
   wfit <- el_glm(y ~ ., family = binomial("log"), data = df, weights = w)
@@ -309,6 +310,7 @@ test_that("`el_glm()` (binomial - log).", {
     matrix(c(1, 5, 0), nrow = 1),
     matrix(c(0, 1, -1), nrow = 1)
   )
+  expect_s4_class(elt(fit, rhs = coef(fit), calibrate = "boot"), "ELT")
   expect_s4_class(elmt(fit, lhs = lhs), "ELMT")
   expect_s4_class(elmt(wfit, lhs = lhs), "ELMT")
 })
@@ -323,7 +325,7 @@ test_that("`el_glm()` (poisson - identity).", {
   w <- rep(c(1, 2), times = 50)
   l <- 3 + x %*% as.vector(b)
   mu <- l
-  y <- vapply(mu, FUN = function(x) rpois(1, x), FUN.VALUE = integer(1))
+  y <- vapply(mu, FUN = function(x) rpois(1, x), FUN.VALUE = integer(1L))
   df <- data.frame(y, x)
   fit <- el_glm(y ~ ., family = poisson("identity"), data = df)
   wfit <- el_glm(y ~ ., family = poisson("identity"), data = df, weights = w)
@@ -345,20 +347,18 @@ test_that("`el_glm()` (poisson - sqrt).", {
   w <- rep(c(1, 2), times = 50)
   l <- 0.5 + x %*% as.vector(b)
   mu <- l^2
-  y <- vapply(mu, FUN = function(x) rpois(1, x), FUN.VALUE = integer(1))
+  y <- vapply(mu, FUN = function(x) rpois(1, x), FUN.VALUE = integer(1L))
   df <- data.frame(y, x)
   fit <- el_glm(y ~ ., family = poisson("sqrt"), data = df)
   wfit <- el_glm(y ~ ., family = poisson("sqrt"), data = df, weights = w)
-  lhs <- list(
-    matrix(c(1, -5, 0, 0), nrow = 1),
-    matrix(c(0, 0, 1, -100), nrow = 1)
-  )
-  expect_s4_class(elmt(fit, lhs = lhs), "ELMT")
-  expect_s4_class(elmt(wfit, lhs = lhs), "ELMT")
+  lhs <- list(diag(4), c(0, 0, 1, -100))
+  out <- elmt(fit, lhs = lhs)
+  wout <- elmt(wfit, lhs = lhs)
+  expect_output(print(out))
+  expect_s4_class(out, "ELMT")
+  expect_s4_class(wout, "ELMT")
 })
 
-#' @srrstats {G5.9, G5.9b} Different random seeds do not produce significantly
-#'   different critical values.
 test_that("Noise susceptibility tests.", {
   skip_on_cran()
   fit <- el_lm(mpg ~ cyl + disp, data = mtcars)
@@ -397,10 +397,6 @@ test_that(
   }
 )
 
-#' @srrstats {G5.6, G5.6a, G5.6b} `el_lm()` returns the expected coefficients
-#'   (`rep(1, p)`) for a simulated data set generated from a linear model. The
-#'   parameters used are `n = 1e+05`, `p = 3`, and `tolerance = 1e-02`, with
-#'   three different seeds.
 test_that("Parameter recovery tests.", {
   skip_on_cran()
   set.seed(5524325)
@@ -437,7 +433,7 @@ test_that("`el_glm()` (quasipoisson - log).", {
   w <- rep(c(1, 2), times = 100)
   l <- -0.4 + x %*% as.vector(b)
   mu <- exp(l)
-  y <- vapply(mu, FUN = function(x) rpois(1, x), FUN.VALUE = integer(1)) +
+  y <- vapply(mu, FUN = function(x) rpois(1, x), FUN.VALUE = integer(1L)) +
     sample(1:10, n, replace = TRUE)
   df <- data.frame(y, x)
   fit <- el_glm(y ~ .,
@@ -453,6 +449,35 @@ test_that("`el_glm()` (quasipoisson - log).", {
     matrix(c(0, 0, 1, 1), nrow = 1)
   )
   rhs <- c(0, -0.5)
+  expect_s4_class(elmt(fit, rhs = rhs, lhs = lhs), "ELMT")
+  expect_s4_class(elmt(wfit, rhs = rhs, lhs = lhs), "ELMT")
+})
+
+test_that("`el_glm()` (quasipoisson - identity).", {
+  skip_on_cran()
+  set.seed(5324)
+  n <- 200
+  p <- 4
+  b <- rnorm(p, sd = 0.5)
+  x <- matrix(rnorm(n * p), ncol = p)
+  w <- rep(c(1, 2), times = 100)
+  l <- 4 + x %*% as.vector(b)
+  y <- vapply(l, FUN = function(x) rpois(1, x), FUN.VALUE = integer(1L)) +
+    sample(1:10, n, replace = TRUE)
+  df <- data.frame(y, x)
+  fit <- el_glm(y ~ .,
+    family = quasipoisson("identity"), data = df,
+    control = el_control(tol = 1e-05, th = 1000)
+  )
+  wfit <- el_glm(y ~ .,
+    family = quasipoisson("identity"), data = df, weights = w,
+    control = el_control(tol = 1e-05, th = 1000)
+  )
+  lhs <- list(
+    matrix(c(0, 1, 1, 0, 0), nrow = 1),
+    matrix(c(0, 0, 1, 1, 0), nrow = 1)
+  )
+  rhs <- c(-1, -0.5)
   expect_s4_class(elmt(fit, rhs = rhs, lhs = lhs), "ELMT")
   expect_s4_class(elmt(wfit, rhs = rhs, lhs = lhs), "ELMT")
 })

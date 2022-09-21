@@ -8,7 +8,7 @@
 \S4method{nobs}{EL}(object, ...)
 }
 \arguments{
-\item{object}{An object that inherit from \linkS4class{EL}.}
+\item{object}{An object that inherits from \linkS4class{EL}.}
 
 \item{...}{Further arguments passed to methods.}
 }
@@ -22,4 +22,7 @@ Extracts number of observations from a model.
 data("precip")
 fit <- el_mean(precip, par = 40)
 nobs(fit)
+}
+\seealso{
+\linkS4class{EL}
 }

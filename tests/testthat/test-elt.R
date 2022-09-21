@@ -51,7 +51,9 @@ test_that("Invalid `control`.", {
 test_that("When elt == evaluation.", {
   x <- sleep$extra
   fit <- el_mean(x, par = 1.2)
-  fit2 <- elt(fit, rhs = 1.2)
+  fit2 <- elt(fit, lhs = c("par"), rhs = 1.2)
+  expect_equal(getDF(fit2), 1L)
+  expect_output(print(fit2))
   expect_equal(getOptim(fit)$lambda, getOptim(fit2)$lambda)
   wfit <- el_mean(x, par = 1.2, weights = as.numeric(sleep$group))
   wfit2 <- elt(wfit, rhs = 1.2)
@@ -70,9 +72,14 @@ test_that("When elt == evaluation.", {
 })
 
 test_that("`conv()` method and calibration.", {
-  fit <- el_mean(women$height, par = 65)
-  expect_true(conv(elt(fit, rhs = 67, calibrate = "f")))
-  expect_s4_class(elt(fit, rhs = 67, calibrate = "boot"), "ELT")
+  fit <- el_mean(precip, par = 60)
+  expect_true(conv(elt(fit, rhs = 65, calibrate = "f")))
+})
+
+test_that("Probabilities add up to 1.", {
+  fit <- el_mean(precip, par = 60)
+  elt <- elt(fit, rhs = 65)
+  expect_equal(sum(exp(logProb(elt))), 1, tolerance = 1e-07)
 })
 
 test_that("Vector `lhs`.", {
@@ -129,6 +136,6 @@ test_that("`QGLM` class.", {
   )
   out <- elt(fit, rhs = coef(fit))
   expect_s4_class(out, "ELT")
-  out2 <- elt(fit, lhs = c(0, 1, 1))
+  out2 <- elt(fit, lhs = c("mpg + cyl"))
   expect_s4_class(out2, "ELT")
 })

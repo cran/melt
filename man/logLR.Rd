@@ -11,7 +11,7 @@
 \S4method{logLR}{ELT}(object, ...)
 }
 \arguments{
-\item{object}{An object that inherit from \linkS4class{EL} or
+\item{object}{An object that inherits from \linkS4class{EL} or
 \linkS4class{ELT}.}
 
 \item{...}{Further arguments passed to methods.}
@@ -26,4 +26,12 @@ Extracts empirical log-likelihood ratio from a model.
 data("precip")
 fit <- el_mean(precip, par = 40)
 logLR(fit)
+}
+\references{
+Baggerly KA (1998).
+  “Empirical Likelihood as a Goodness-of-Fit Measure.” \emph{Biometrika},
+  85(3), 535--547. \doi{10.1093/biomet/asm094}.
+}
+\seealso{
+\linkS4class{EL}, \linkS4class{ELT}
 }

@@ -13,18 +13,30 @@
 #'   If non-`NULL`, weighted empirical likelihood is computed.
 #' @param control An object of class \linkS4class{ControlEL} constructed by
 #'   [el_control()].
+#' @details Let \eqn{X_i} be independent and identically distributed
+#'   \eqn{p}-dimensional random variable from an unknown distribution \eqn{P}
+#'   for \eqn{i = 1, \dots, n}. We assume that \eqn{{\textrm{E}[X_i]} =
+#'   {\theta_0} \in {\rm{I\!R}}^p} and that \eqn{P} has a positive definite
+#'   covariance matrix. Given a value of \eqn{\theta}, the (profile) empirical
+#'   likelihood ratio is defined by
+#'   \deqn{R(\theta) =
+#'   \max_{p_i}\left\{\prod_{i = 1}^n np_i :
+#'   \sum_{i = 1}^n p_i X_i = \theta,\
+#'   p_i \geq 0,\
+#'   \sum_{i = 1}^n p_i = 1
+#'   \right\}.}
+#'   [el_mean()] computes the empirical log-likelihood ratio statistic
+#'   \eqn{-2\log R(\theta)}, along with other values in \linkS4class{EL}.
 #' @return An object of class \linkS4class{EL}.
 #' @references Owen A (1990).
 #'   “Empirical Likelihood Ratio Confidence Regions.”
-#'   The Annals of Statistics, 18(1), 90–120.
+#'   \emph{The Annals of Statistics}, 18(1), 90--120.
 #'   \doi{10.1214/aos/1176347494}.
-#' @seealso [el_control()], [el_eval()], [elt()]
+#' @seealso \linkS4class{EL}, [elt()], [el_eval()], [el_control()]
 #' @examples
 #' ## Scalar mean
-#' set.seed(414)
-#' x <- rnorm(100)
-#' par <- 0
-#' el_mean(x, par)
+#' data("precip")
+#' el_mean(precip, 30)
 #'
 #' ## Vector mean
 #' data("faithful")
@@ -34,14 +46,6 @@
 #' w <- rep(c(1, 2), each = nrow(faithful) / 2)
 #' el_mean(faithful, par = c(3.5, 70), weights = w)
 #' @export
-#' @srrstats {G2.0, G2.0a} Assertions on lengths of inputs are clarified
-#'   throughout the package documentation.
-#' @srrstats {G2.16} All functions in the package strictly prohibit undefined
-#'   values. They will trigger error messages in all cases.
-#' @srrstats {G2.7} `el_mean()` accepts a numeric matrix (or an object that can
-#'   be coerced to a numeric matrix by `as.matrix()`) for the argument `x`. This
-#'   includes a data frame with only numeric variables. Unit tests use a data
-#'   frame for the argument `x`. See `tests/testthat/test-confint.R`.
 el_mean <- function(x,
                     par,
                     weights = NULL,

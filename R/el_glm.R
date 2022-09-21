@@ -17,91 +17,105 @@
 #' @param na.action A function which indicates what should happen when the data
 #'   contain `NA`s. The default is set by the `na.action` setting of
 #'   [`options`], and is `na.fail` if that is unset.
-#' @param control An object of class \linkS4class{ControlEL} constructed by
-#'   [el_control()].
 #' @param start Starting values for the parameters in the linear predictor.
 #'   Defaults to `NULL` and is passed to [glm.fit()].
 #' @param etastart Starting values for the linear predictor. Defaults to `NULL`
 #'   and is passed to [glm.fit()].
 #' @param mustart Starting values for the vector of means. Defaults to `NULL`
 #'   and is passed to [glm.fit()].
+#' @param offset An optional expression for specifying an \emph{a priori} known
+#'   component to be included in the linear predictor during fitting. This
+#'   should be `NULL` or a numeric vector or matrix of extents matching those of
+#'   the response. One or more [`offset`] terms can be included in the formula
+#'   instead or as well, and if more than one are specified their sum is used.
+#' @param control An object of class \linkS4class{ControlEL} constructed by
+#'   [el_control()].
 #' @param ... Additional arguments to be passed to [glm.control()].
-#' @details The available families and link functions are as follows:
-#'   * `gaussian`: `"identity"`, `"log"`, and `"inverse"`.
-#'   * `bimomial`: `"logit"`, `"probit"`, and `"log"`.
-#'   * `poisson`: `"log"`, `"identity"`, and `"sqrt"`.
-#'   * `quasipoisson`: `"log"`.
+#' @details Suppose that we observe \eqn{n} independent random variables
+#'   \eqn{{Z_i} \equiv {(X_i, Y_i)}} from a common distribution, where \eqn{X_i}
+#'   is the \eqn{p}-dimensional covariate (including the intercept if any) and
+#'   \eqn{Y_i} is the response. A generalized linear model specifies that
+#'   \eqn{{\textrm{E}(Y_i | X_i)} = {\mu_i}},
+#'   \eqn{{G(\mu_i)} = {X_i^\top \theta}}, and
+#'   \eqn{{\textrm{Var}(Y_i | X_i)} = {\phi V(\mu_i)}},
+#'   where \eqn{\theta = (\theta_0, \dots, \theta_{p-1})} is an unknown
+#'   \eqn{p}-dimensional parameter, \eqn{\phi} is an optional dispersion
+#'   parameter, \eqn{G} is a known smooth link function, and \eqn{V} is a known
+#'   variance function.
 #'
-#'   Included in the tests are the overall test with
-#'   \deqn{H_0: \beta_1 = \beta_2 = \cdots = \beta_{p-1} = 0,}
-#'   and the tests for each parameter with
-#'   \deqn{H_{0j}: \beta_j = 0,\ j = 0, \dots, p-1.}
-#'   The test results are returned as `optim` and `sigTests`, respectively.
+#'   With \eqn{H} denoting the inverse link function, define the quasi-score
+#'   \deqn{{g_1(Z_i, \theta)} =
+#'   \left\{
+#'   H^\prime(X_i^\top \theta) \left(Y_i - H(X_i^\top \theta)\right) /
+#'   \left(\phi V\left(H(X_i^\top \theta)\right)\right)
+#'   \right\}
+#'   X_i.}
+#'   Then we have the estimating equations
+#'   \eqn{\sum_{i = 1}^n g_1(Z_i, \theta) = 0}.
+#'   When \eqn{\phi} is known, the (profile) empirical likelihood ratio for a
+#'   given \eqn{\theta} is defined by
+#'   \deqn{R_1(\theta) =
+#'   \max_{p_i}\left\{\prod_{i = 1}^n np_i :
+#'   \sum_{i = 1}^n p_i g_1(Z_i, \theta) = 0,\
+#'   p_i \geq 0,\
+#'   \sum_{i = 1}^n p_i = 1
+#'   \right\}.}
+#'   With unknown \eqn{\phi}, we introduce another estimating function based on
+#'   the squared residuals. Let \eqn{{\eta} = {(\theta, \phi)}} and
+#'   \deqn{{g_2(Z_i, \eta)} =
+#'   \left(Y_i - H(X_i^\top \theta)\right)^2 /
+#'   \left(\phi^2 V\left(H(X_i^\top \theta)\right)\right) - 1 / \phi.}
+#'   Now the empirical likelihood ratio is defined by
+#'   \deqn{R_2(\eta) =
+#'   \max_{p_i}\left\{\prod_{i = 1}^n np_i :
+#'   \sum_{i = 1}^n p_i g_1(Z_i, \eta) = 0,\
+#'   \sum_{i = 1}^n p_i g_2(Z_i, \eta) = 0,\
+#'   p_i \geq 0,\
+#'   \sum_{i = 1}^n p_i = 1
+#'   \right\}.}
+#'   [el_glm()] first computes the parameter estimates by calling [glm.fit()]
+#'   (with `...` if any) with the `model.frame` and `model.matrix` obtained from
+#'   the `formula`. Note that the maximum empirical likelihood estimator is the
+#'   same as the the quasi-maximum likelihood estimator in our model. Next, it
+#'   tests hypotheses based on asymptotic chi-square distributions of the
+#'   empirical likelihood ratio statistics. Included in the tests are overall
+#'   test with
+#'   \deqn{H_0: \theta_1 = \theta_2 = \cdots = \theta_{p-1} = 0,}
+#'   and significance tests for each parameter with
+#'   \deqn{H_{0j}: \theta_j = 0,\ j = 0, \dots, p-1.}
+#'
+#'   The available families and link functions are as follows:
+#'   * `gaussian`: `"identity"`, `"log"`, and `"inverse"`.
+#'   * `binomial`: `"logit"`, `"probit"`, and `"log"`.
+#'   * `poisson`: `"log"`, `"identity"`, and `"sqrt"`.
+#'   * `quasipoisson`: `"log"` and `"identity"`.
 #' @return An object of class of \linkS4class{GLM}.
 #' @references Chen SX, Cui H (2003).
 #'   “An Extended Empirical Likelihood for Generalized Linear Models.”
-#'   Statistica Sinica, 13(1), 69–81.
+#'   \emph{Statistica Sinica}, 13(1), 69--81.
 #' @references Kolaczyk ED (1994).
 #'   “Empirical Likelihood for Generalized Linear Models.”
-#'   Statistica Sinica, 4(1), 199–218.
-#' @seealso [el_control()], [el_lm()], [elt()]
+#'   \emph{Statistica Sinica}, 4(1), 199--218.
+#' @seealso \linkS4class{EL}, \linkS4class{GLM}, [el_lm()], [elt()],
+#'   [el_control()]
 #' @examples
-#' set.seed(20010)
-#' n <- 50
-#' x <- rnorm(n)
-#' x2 <- rnorm(n)
-#' l <- -2 + 0.2 * x + 3 * x2
-#' mu <- 1 / (1 + exp(-l))
-#' y <- rbinom(n, 1, mu)
-#' df <- data.frame(y, x, x2)
-#' fit <- el_glm(y ~ x + x2,
-#'   family = binomial, data = df, weights = NULL, na.action = na.omit,
-#'   start = NULL, etastart = NULL, mustart = NULL
+#' data("warpbreaks")
+#' fit <- el_glm(wool ~ .,
+#'   family = binomial, data = warpbreaks, weights = NULL, na.action = na.omit,
+#'   start = NULL, etastart = NULL, mustart = NULL, offset = NULL
 #' )
 #' summary(fit)
 #' @export
-#' @srrstats {G2.14, G2.14a, RE2.1, RE2.2} Missing values are handled by the
-#'   `na.action` argument via `na.cation()`. `Inf` values are not allowed and
-#'   produce an error.Partially missing values (missing response or missing
-#'   predictors) are allowed unless a singular fit is encountered. Although
-#'   singular fits can produce estimates and fitted values, there is no
-#'   practical advantage of using the package for singular fits since further
-#'   inference based on empirical likelihood is unavailable. Note that at least
-#'   for the linear models the maximum empirical likelihood estimates (and thus
-#'   the fitted values as well) are identical to the estimates returned by
-#'   `glm.fit()`.
-#' @srrstats {G5.8, G5.8d} Data with more fields than observations produces an
-#'   error.
-#' @srrstats {G2.11, G2.12} Given the `formula` and `data` input,
-#'   `stats::model.frame()` (which calls `as.data.frame()`) checks whether the
-#'   `data` input is valid or not. If not, an error is triggered. The
-#'   requirement is documented and tested.
-#' @srrstats {RE1.0, RE1.1} Formula interface is used to the `formula` argument,
-#'   and how it is converted to a matrix input is documented as well.
-#' @srrstats {RE1.2} The expected format for the argument `data` is documented.
-#' @srrstats {RE1.3, RE1.3a} The transformation only applies to the `data`
-#'   argument. The only attributes that are passed to the output are the row and
-#'   column names, and these are preserved.
-#' @srrstats {RE2.0} Documented the use of `model.frame` and `model.matrix`.
-#'   Users should be well aware of the basic transformations done by `glm()`.
-#' @srrstats {RE2.1} Missing values are handled by the `na.action` argument.
-#'   `Inf` values are not allowed and produce an error.
-#' @srrstats {RE2.4, RE2.4a, RE2.4b} Perfect collinearity is handled by
-#'   `model.frame()`. Especially, perfect collinearity among predictor variables
-#'   produces an error in `glm.fit()` since `singular.ok` is set to `FALSE`.
-#'   This is because the underlying asymptotic empirical likelihood theory
-#'   requires a full-rank covariance structure in order for a limiting argument
-#'   to work. See `EL-class` documentation.
-#' @srrstats {RE4.0} `el_glm()` returns an object of class `GLM`.
 el_glm <- function(formula,
                    family = gaussian,
                    data,
                    weights = NULL,
                    na.action,
-                   control = el_control(),
                    start = NULL,
                    etastart = NULL,
                    mustart = NULL,
+                   offset,
+                   control = el_control(),
                    ...) {
   stopifnot("Invalid `control` specified." = (is(control, "ControlEL")))
   cl <- match.call()
@@ -120,8 +134,7 @@ el_glm <- function(formula,
   }
   mf <- match.call(expand.dots = FALSE)
   m <- match(c(
-    "formula", "data", "weights", "na.action", "etastart",
-    "mustart"
+    "formula", "data", "weights", "na.action", "etastart", "mustart", "offset"
   ), names(mf), 0L)
   mf <- mf[c(1L, m)]
   mf$drop.unused.levels <- TRUE
@@ -129,19 +142,28 @@ el_glm <- function(formula,
   mf <- eval(mf, parent.frame())
   glm_control <- do.call("glm.control", list(...))
   mt <- attr(mf, "terms")
-  Y <- model.response(mf, "any")
-  if (length(dim(Y)) == 1L) {
-    nm <- rownames(Y)
-    dim(Y) <- NULL
+  y <- model.response(mf, "any")
+  if (length(dim(y)) == 1L) {
+    nm <- rownames(y)
+    dim(y) <- NULL
     if (!is.null(nm)) {
-      names(Y) <- nm
+      names(y) <- nm
     }
   }
   stopifnot(
-    "`el_glm()` does not support grouped data." = (isFALSE(is.matrix(Y)))
+    "`el_glm()` does not support grouped data." = (isFALSE(is.matrix(y)))
   )
+  offset <- as.vector(model.offset(mf))
+  if (!is.null(offset)) {
+    if (length(offset) != length(y)) {
+      stop(gettextf(
+        "Number of offsets is %d, should equal %d (number of observations).",
+        length(offset), length(y)
+      ), domain = NA)
+    }
+  }
   if (is.empty.model(mt)) {
-    X <- matrix(numeric(0), NROW(Y), 0L)
+    x <- matrix(numeric(0), length(y), 0L)
     if (grepl("quasi", family$family)) {
       class <- "QGLM"
       npar <- 1L
@@ -152,17 +174,17 @@ el_glm <- function(formula,
     return(new(class,
       family = family, call = cl, terms = mt,
       misc = list(
-        formula = formula, offset = NULL, control = glm_control,
-        intercept = FALSE, method = "glm.fit", contrasts = attr(X, "contrasts"),
+        formula = formula, offset = offset, control = glm_control,
+        intercept = FALSE, method = "glm.fit", contrasts = attr(x, "contrasts"),
         xlevels = .getXlevels(mt, mf), na.action = attr(mf, "na.action")
       ),
       optim = list(
         par = numeric(), lambda = numeric(), iterations = integer(),
         convergence = logical()
-      ), df = 0L, nobs = nrow(X), npar = npar, method = NA_character_
+      ), df = 0L, nobs = nrow(x), npar = npar, method = NA_character_
     ))
   } else {
-    X <- model.matrix(mt, mf, NULL)
+    x <- model.matrix(mt, mf, NULL)
   }
   w <- as.vector(model.weights(mf))
   stopifnot(
@@ -174,18 +196,19 @@ el_glm <- function(formula,
   etastart <- model.extract(mf, "etastart")
   intercept <- as.logical(attr(mt, "intercept"))
   fit <- glm.fit(
-    x = X, y = Y, weights = w, start = start, etastart = etastart,
-    mustart = mustart, offset = NULL, family = family,
+    x = x, y = y, weights = w, start = start, etastart = etastart,
+    mustart = mustart, offset = offset, family = family,
     control = glm_control, intercept = intercept,
     singular.ok = FALSE
   )
   pnames <- names(fit$coefficients)
   method <- validate_family(fit$family)
-  mm <- cbind(fit$y, X)
+  s <- if (is.null(offset)) rep.int(0, length(y)) else offset
+  mm <- cbind(s, fit$y, x)
   n <- nrow(mm)
-  p <- ncol(X)
+  p <- ncol(x)
   w <- validate_weights(w, n)
-  names(w) <- if (length(w) != 0L) names(Y) else NULL
+  names(w) <- if (length(w) != 0L) names(y) else NULL
   if (fit$family$family %in% c("poisson", "binomial")) {
     dispersion <- 1L
   } else {
@@ -229,12 +252,12 @@ el_glm <- function(formula,
     sigTests = lapply(out$sig_tests, setNames, pnames), call = cl, terms = mt,
     misc = list(
       iter = fit$iter, converged = fit$converged, boundary = fit$boundary,
-      formula = formula, offset = NULL, control = glm_control,
+      formula = formula, offset = offset, control = glm_control,
       intercept = intercept, method = "glm.fit",
-      contrasts = attr(X, "contrasts"), xlevels = .getXlevels(mt, mf),
+      contrasts = attr(x, "contrasts"), xlevels = .getXlevels(mt, mf),
       na.action = attr(mf, "na.action")
     ),
-    optim = optim, logp = setNames(out$logp, names(Y)), logl = out$logl,
+    optim = optim, logp = setNames(out$logp, names(y)), logl = out$logl,
     loglr = out$loglr, statistic = out$statistic, df = df, pval = pval,
     nobs = n, npar = npar, weights = w, coefficients = fit$coefficients,
     method = method, data = if (control@keep_data) mm else NULL

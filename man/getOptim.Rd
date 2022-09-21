@@ -11,20 +11,18 @@
 \S4method{getOptim}{ELT}(object, ...)
 }
 \arguments{
-\item{object}{An object that inherit from \linkS4class{EL} or
+\item{object}{An object that inherits from \linkS4class{EL} or
 \linkS4class{ELT}.}
 
 \item{...}{Further arguments passed to methods.}
 }
 \value{
 A list with the following optimization results:
-\itemize{
-\item \code{par} A numeric vector of the parameter value. See the documentation of
-\linkS4class{EL} and \linkS4class{CEL}.
-\item \code{lambda} A numeric vector of the Lagrange multipliers.
-\item \code{iterations} A single integer for the number of iterations performed.
-\item \code{convergence} A single logical for the convergence status.
-}
+  * `par` A numeric vector of the parameter value. See the documentation of
+  \linkS4class{EL} and \linkS4class{CEL}.
+  * `lambda` A numeric vector of the Lagrange multipliers.
+  * `iterations` A single integer for the number of iterations performed.
+  * `convergence` A single logical for the convergence status.
 }
 \description{
 Extracts optimization results from a model.
@@ -35,5 +33,5 @@ fit <- el_mean(precip, par = 40)
 getOptim(fit)
 }
 \seealso{
-\code{\link[=sigTests]{sigTests()}}
+\linkS4class{EL}, \linkS4class{CEL}, \linkS4class{ELT}, [sigTests()]
 }

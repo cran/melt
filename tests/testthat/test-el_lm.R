@@ -16,6 +16,12 @@ test_that("Invalid `data`.", {
   expect_error(el_lm(y ~ x + x2, data = df3))
 })
 
+test_that("Invalid `offset`.", {
+  expect_error(el_lm(height ~ weight, data = women, offset = as.matrix(women)))
+  fit <- el_lm(height ~ weight, data = women, offset = weight)
+  expect_s4_class(fit, "LM")
+})
+
 test_that("Invalid `weights`.", {
   w <- women$weight
   w[1] <- -1
@@ -33,12 +39,12 @@ test_that("Probabilities add up to 1.", {
   y <- 10 + 0.001 * x + rep(c(1, 0.2, 0.5, 2, -1.2), times = 3)
   df <- data.frame(x, y)
   fit <- el_lm(y ~ x, data = df)
-  expect_equal(sum(exp(fit@logp)), 1)
+  expect_equal(sum(exp(logProb(fit))), 1)
   fit2 <- el_lm(y ~ x, data = df, weights = women$height)
-  expect_equal(sum(exp(fit2@logp)), 1)
+  expect_equal(sum(exp(logProb(fit2))), 1)
 })
 
-test_that("Conversion between `loglik` and `loglr`.", {
+test_that("Conversion between `logl` and `loglr`.", {
   fit <- el_lm(eruptions ~ waiting, data = faithful)
   n <- nrow(faithful)
   expect_equal(logL(fit) + n * log(n), logLR(fit))
@@ -103,7 +109,6 @@ test_that("`conv()`, `formula()`, and `nobs()` methods.", {
   expect_identical(nobs(fit), nrow(mtcars))
 })
 
-#' @srrstats {RE7.0, RE7.0a} Exact relationship between predictors causes erros.
 test_that("Exact relationship between predictors.", {
   x <- mtcars$disp
   x2 <- x
@@ -114,8 +119,6 @@ test_that("Exact relationship between predictors.", {
   expect_error(el_lm(y ~ x + x2, data = df, weights = w))
 })
 
-#' @srrstats {RE7.2, RE7.3} All row or column names (if any) are preserved in
-#'   the fitted objects and can be retrieved by accessor methods.
 test_that("All row and column names are preserved.", {
   wfit <- el_lm(mpg ~ -1 + disp + hp, data = mtcars, weights = qsec)
   row_names <- rownames(mtcars)
@@ -128,7 +131,7 @@ test_that("All row and column names are preserved.", {
   expect_true(all(names(sigTests(wfit)$statistic) %in% column_names))
   expect_true(all(names(sigTests(wfit)$convergence) %in% column_names))
   expect_true(all(names(getOptim(wfit)$par) %in% column_names))
-  expect_true(all(colnames(getData(wfit)[, -1L]) %in% column_names))
+  expect_true(all(colnames(getData(wfit)[, -c(1L, 2L)]) %in% column_names))
   expect_true(all(names(coef(wfit)) %in% column_names))
   expect_true(all(rownames(confint(wfit)) %in% column_names))
 })

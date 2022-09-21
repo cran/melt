@@ -11,8 +11,8 @@ S4 class for a summary of \linkS4class{LM} objects.
 \section{Slots}{
 
 \describe{
-\item{\code{statistic}}{A single numeric for the minus twice the empirical
-log-likelihood ratio for the overall test of the model.}
+\item{\code{statistic}}{A single numeric of minus twice the (constrained) empirical
+log-likelihood ratio for the overall test.}
 
 \item{\code{df}}{A single integer for the degrees of freedom of the statistic.}
 
@@ -24,12 +24,15 @@ constrained minimization.}
 \item{\code{weighted}}{A single logical for whether the given model is weighted or
 not.}
 
-\item{\code{na.action}}{Information returned by \code{\link{model.frame}} on the special
-handling of \code{NA}s.}
+\item{\code{intercept}}{A single logical for whether the given model has an intercept
+term or not.}
+
+\item{\code{na.action}}{Information returned by [`model.frame`] on the special
+handling of `NA`s.}
 
 \item{\code{call}}{A matched call.}
 
-\item{\code{terms}}{A \code{\link{terms}} object used.}
+\item{\code{terms}}{A [`terms`] object used.}
 
 \item{\code{aliased}}{A named logical vector showing if the original coefficients are
 aliased.}

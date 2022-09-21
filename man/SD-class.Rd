@@ -8,6 +8,46 @@
 \description{
 S4 class for standard deviation. It inherits from \linkS4class{EL} class.
 }
+\section{Slots}{
+
+\describe{
+\item{\code{optim}}{A list of the following optimization results:
+* `par` A numeric vector of the solution to the optimization problem.
+* `lambda` A numeric vector of the Lagrange multipliers of the dual
+problem corresponding to `par`.
+* `iterations` A single integer for the number of iterations performed.
+* `convergence` A single logical for the convergence status.}
+
+\item{\code{logp}}{A numeric vector of the log probabilities of the empirical
+likelihood.}
+
+\item{\code{logl}}{A single numeric of the empirical log-likelihood.}
+
+\item{\code{loglr}}{A single numeric of the empirical log-likelihood ratio.}
+
+\item{\code{statistic}}{A single numeric of minus twice the empirical log-likelihood
+ratio with an asymptotic chi-square distribution.}
+
+\item{\code{df}}{A single integer for the degrees of freedom of the statistic.}
+
+\item{\code{pval}}{A single numeric for the \eqn{p}-value of the statistic.}
+
+\item{\code{nobs}}{A single integer for the number of observations.}
+
+\item{\code{npar}}{A single integer for the number of parameters.}
+
+\item{\code{weights}}{A numeric vector of the re-scaled weights used for the model
+fitting.}
+
+\item{\code{coefficients}}{A numeric vector of the maximum empirical likelihood
+estimates of the parameters.}
+
+\item{\code{method}}{A single character for the method dispatch in internal
+functions.}
+
+\item{\code{data}}{A numeric matrix of the data for the model fitting.}
+}}
+
 \examples{
 showClass("SD")
 }

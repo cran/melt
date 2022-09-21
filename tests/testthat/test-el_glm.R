@@ -23,7 +23,7 @@ test_that("Invalid `family`.", {
     data = airquality
   ))
   expect_error(el_glm(carb ~ .,
-    family = quasipoisson("identity"),
+    family = quasipoisson("sqrt"),
     data = mtcars
   ))
 })
@@ -45,6 +45,16 @@ test_that("Invalid `weights`.", {
     family = binomial, data = warpbreaks,
     weights = rep(-1, 54)
   ))
+})
+
+test_that("Invalid `offset`.", {
+  expect_error(el_glm(height ~ weight,
+    family = gaussian, data = women, offset = as.matrix(women)
+  ))
+  fit <- el_glm(height ~ weight,
+    family = gaussian, data = women, offset = weight,
+  )
+  expect_s4_class(fit, "GLM")
 })
 
 test_that("Invalid `control`.", {
@@ -72,11 +82,11 @@ test_that("Probabilities add up to 1.", {
   )
   expect_output(print(fit))
   expect_output(print(summary(fit)))
-  expect_equal(sum(exp(fit@logp)), 1)
-  expect_equal(sum(exp(wfit@logp)), 1)
+  expect_equal(sum(exp(logProb(fit))), 1)
+  expect_equal(sum(exp(logProb(wfit))), 1)
 })
 
-test_that("conversion between `loglik` and `loglr`.", {
+test_that("conversion between `logl` and `loglr`.", {
   fit <- el_glm(wool ~ ., family = binomial, data = warpbreaks)
   wfit <- el_glm(wool ~ .,
     family = binomial, data = warpbreaks,

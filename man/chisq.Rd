@@ -3,28 +3,28 @@
 \name{chisq}
 \alias{chisq}
 \alias{chisq,EL-method}
-\alias{chisq,ELT-method}
 \alias{chisq,ELMT-method}
+\alias{chisq,ELT-method}
 \alias{chisq,SummaryLM-method}
 \title{Chi-square statistic}
 \usage{
 \S4method{chisq}{EL}(object, ...)
 
-\S4method{chisq}{ELT}(object, ...)
-
 \S4method{chisq}{ELMT}(object, ...)
+
+\S4method{chisq}{ELT}(object, ...)
 
 \S4method{chisq}{SummaryLM}(object, ...)
 }
 \arguments{
-\item{object}{An object that inherit from \linkS4class{EL},
+\item{object}{An object that inherits from \linkS4class{EL},
 \linkS4class{ELT}, \linkS4class{ELMT}, or \linkS4class{SummaryLM}.}
 
 \item{...}{Further arguments passed to methods.}
 }
 \value{
-The form of the value returned by \code{\link[=chisq]{chisq()}} depends on the class of
-its argument.
+The form of the value returned by [chisq()] depends on the class of
+  its argument.
 }
 \description{
 Extracts chi-square statistic from a model.
@@ -33,9 +33,9 @@ Extracts chi-square statistic from a model.
 \itemize{
 \item \code{chisq(EL)}: Extracts the chi-square statistic.
 
-\item \code{chisq(ELT)}: Extracts the chi-square statistic.
-
 \item \code{chisq(ELMT)}: Extracts the vector of chi-square statistics.
+
+\item \code{chisq(ELT)}: Extracts the chi-square statistic.
 
 \item \code{chisq(SummaryLM)}: Extracts the chi-square statistic for the overall test of
 the model.
@@ -47,5 +47,6 @@ fit <- el_mean(precip, par = 40)
 chisq(fit)
 }
 \seealso{
-\code{\link[=pVal]{pVal()}}
+\linkS4class{EL}, \linkS4class{ELT}, \linkS4class{ELMT},
+  \linkS4class{SummaryLM}, [pVal()]
 }

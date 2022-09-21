@@ -7,14 +7,40 @@
 \title{\linkS4class{SummaryGLM} class}
 \description{
 S4 class for a summary of \linkS4class{GLM} objects. It inherits from
-\linkS4class{SummaryLM} class.
+  \linkS4class{SummaryLM} class.
 }
 \section{Slots}{
 
 \describe{
-\item{\code{family}}{A \code{\link{family}} object used.}
+\item{\code{family}}{A [`family`] object used.}
 
 \item{\code{dispersion}}{A single numeric for the estimated dispersion parameter.}
+
+\item{\code{statistic}}{A single numeric of minus twice the (constrained) empirical
+log-likelihood ratio for the overall test.}
+
+\item{\code{df}}{A single integer for the degrees of freedom of the statistic.}
+
+\item{\code{convergence}}{A single logical for the convergence status of the
+constrained minimization.}
+
+\item{\code{sigTests}}{A numeric matrix of the results of significance tests.}
+
+\item{\code{weighted}}{A single logical for whether the given model is weighted or
+not.}
+
+\item{\code{intercept}}{A single logical for whether the given model has an intercept
+term or not.}
+
+\item{\code{na.action}}{Information returned by [`model.frame`] on the special
+handling of `NA`s.}
+
+\item{\code{call}}{A matched call.}
+
+\item{\code{terms}}{A [`terms`] object used.}
+
+\item{\code{aliased}}{A named logical vector showing if the original coefficients are
+aliased.}
 }}
 
 \examples{

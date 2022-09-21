@@ -13,54 +13,71 @@ The number of rows must be greater than the number of columns.}
 
 \item{weights}{An optional numeric vector of weights to be used in the
 fitting process. The length of the vector must be the same as the number of
-rows in \code{g}. Defaults to \code{NULL}, corresponding to identical weights. If
-non-\code{NULL}, weighted empirical likelihood is computed.}
+rows in `g`. Defaults to `NULL`, corresponding to identical weights. If
+non-`NULL`, weighted empirical likelihood is computed.}
 
 \item{control}{An object of class \linkS4class{ControlEL} constructed by
-\code{\link[=el_control]{el_control()}}.}
+[el_control()].}
 }
 \value{
-A list with the following components:
-\itemize{
-\item \code{optim} A list with the following optimization results:
-\itemize{
-\item \code{lambda} Lagrange multiplier of the dual problem.
-\item \code{iterations} Number of iterations performed.
-\item \code{convergence} Convergence status.
-}
-\item \code{logp} Log probabilities obtained from empirical likelihood.
-\item \code{logl} Empirical log-likelihood.
-\item \code{loglr} Empirical log-likelihood ratio.
-\item \code{statistic} Minus twice the empirical log-likelihood ratio statistic
-that has an asymptotic chi-square distribution.
-\item \code{df} Degrees of freedom of the statistic.
-\item \code{pval} \eqn{p}-value of the statistic.
-\item \code{npar} Number of parameters.
-\item \code{weights} Re-scaled weights used for model fitting.
-}
+A list of the following optimization results:
+  * `optim` A list with the following optimization results:
+    * `lambda` A numeric vector of the Lagrange multipliers of the dual
+    problem.
+    * `iterations` A single integer for the number of iterations performed.
+    * `convergence` A single logical for the convergence status.
+  * `logp` A numeric vector of the log probabilities of the empirical
+  likelihood.
+  * `logl` A single numeric of the empirical log-likelihood.
+  * `loglr` A single numeric of the empirical log-likelihood ratio.
+  * `statistic` A single numeric of minus twice the empirical log-likelihood
+  ratio with an asymptotic chi-square distribution.
+  * `df` A single integer for the degrees of freedom of the statistic.
+  * `pval` A single numeric for the \eqn{p}-value of the statistic.
+  * `nobs` A single integer for the number of observations.
+  * `npar` A single integer for the number of parameters.
+  * `weights` A numeric vector of the re-scaled weights used for the model
+  fitting.
 }
 \description{
 Computes empirical likelihood with general estimating functions.
 }
 \details{
-\code{el_eval} evaluates empirical likelihood with a \eqn{n} by
-\eqn{p} numeric matrix argument \code{g}, whose \eqn{i}th row is
-\eqn{g(X_i, \theta)}. Since the estimating function can be arbitrary,
-\code{el_eval} does not return an object of class \linkS4class{EL}, and the
-associated generics and methods are not applicable.
+Let \eqn{X_i} be independent and identically distributed
+  \eqn{p}-dimensional random variable from an unknown distribution \eqn{P}
+  for \eqn{i = 1, \dots, n}. We assume that \eqn{P} has a positive definite
+  covariance matrix. For a parameter of interest
+  \eqn{\theta(F) \in {\rm{I\!R}}^p}, consider a \eqn{p}-dimensional smooth
+  estimating function \eqn{g(X_i, \theta)} with a moment condition
+  \deqn{\textrm{E}[g(X_i, \theta)] = 0.}
+  We assume that there exists an unique \eqn{\theta_0} that solves the above
+  equation. Given a value of \eqn{\theta}, the (profile) empirical likelihood
+  ratio is defined by
+  \deqn{R(\theta) =
+  \max_{p_i}\left\{\prod_{i = 1}^n np_i :
+  \sum_{i = 1}^n p_i g(X_i, \theta) = 0, p_i \geq 0, \sum_{i = 1}^n p_i = 1
+  \right\}.}
+  [el_mean()] computes the empirical log-likelihood ratio statistic
+  \eqn{-2\log R(\theta)} with the \eqn{n} by \eqn{p} numeric matrix `g`,
+  whose \eqn{i}th row is \eqn{g(X_i, \theta)}. Since the estimating function
+  can be arbitrary, [el_eval()] does not return an object of class
+  \linkS4class{EL}, and the associated generics and methods are not
+  applicable.
 }
 \examples{
-set.seed(3271)
-x <- rnorm(50)
-par <- 0
-g <- x - par
-el_eval(g, weights = rep(c(1, 2), each = 25))
+set.seed(123526)
+mu <- 0
+sigma <- 1
+x <- rnorm(100)
+g <- matrix(c(x - mu, (x - mu)^2 - sigma^2), ncol = 2)
+el_eval(g, weights = rep(c(1, 2), each = 50))
 }
 \references{
 Qin J, Lawless J (1994).
-“Empirical Likelihood and General Estimating Equations.”
-The Annals of Statistics, 22(1), 300–325. \doi{10.1214/aos/1176325370}.
+  “Empirical Likelihood and General Estimating Equations.”
+  \emph{The Annals of Statistics}, 22(1), 300--325.
+  \doi{10.1214/aos/1176325370}.
 }
 \seealso{
-\code{\link[=el_control]{el_control()}}
+\linkS4class{EL}, [el_control()]
 }

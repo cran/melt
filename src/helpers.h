@@ -8,14 +8,15 @@ std::function<Eigen::MatrixXd(const Eigen::Ref<const Eigen::MatrixXd> &,
                               const Eigen::Ref<const Eigen::VectorXd> &)>
 set_g_fn(const std::string method);
 
+Eigen::VectorXd proj(const Eigen::Ref<const Eigen::MatrixXd> &l,
+                     const Eigen::Ref<const Eigen::VectorXd> &x);
+
 Eigen::VectorXd mele_mean(const Eigen::Ref<const Eigen::MatrixXd> &x,
                           const Eigen::Ref<const Eigen::ArrayXd> &w);
 Eigen::VectorXd mele_sd(const Eigen::Ref<const Eigen::MatrixXd> &x,
                         const Eigen::Ref<const Eigen::ArrayXd> &w);
 Eigen::VectorXd mele_lm(const Eigen::Ref<const Eigen::MatrixXd> &x,
                         const Eigen::Ref<const Eigen::ArrayXd> &w);
-
-Eigen::ArrayXd inverse_linkinv(const Eigen::Ref<const Eigen::VectorXd> &x);
 
 Eigen::ArrayXd log_linkinv(const Eigen::Ref<const Eigen::VectorXd> &x);
 
@@ -148,4 +149,15 @@ Eigen::VectorXd gr_nloglr_qpoi_log(const Eigen::Ref<const Eigen::VectorXd> &l,
                                    const Eigen::Ref<const Eigen::VectorXd> &par,
                                    const Eigen::Ref<const Eigen::ArrayXd> &w,
                                    const bool weighted);
+
+Eigen::MatrixXd g_qpoi_identity(const Eigen::Ref<const Eigen::MatrixXd> &x,
+                                const Eigen::Ref<const Eigen::VectorXd> &par);
+
+Eigen::VectorXd gr_nloglr_qpoi_identity(
+    const Eigen::Ref<const Eigen::VectorXd> &l,
+    const Eigen::Ref<const Eigen::MatrixXd> &g,
+    const Eigen::Ref<const Eigen::MatrixXd> &x,
+    const Eigen::Ref<const Eigen::VectorXd> &par,
+    const Eigen::Ref<const Eigen::ArrayXd> &w,
+    const bool weighted);
 #endif

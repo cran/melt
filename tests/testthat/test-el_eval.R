@@ -27,7 +27,7 @@ test_that("Probabilities add up to 1.", {
   expect_equal(sum(exp(fit2$logp)), 1, tolerance = 1e-07)
 })
 
-test_that("Conversion between `loglik` and `loglr`.", {
+test_that("Conversion between `logl` and `loglr`.", {
   x <- women$height
   n <- length(x)
   w <- women$weight
@@ -40,7 +40,6 @@ test_that("Conversion between `loglik` and `loglr`.", {
   )
 })
 
-#' @srrstats {G5.3} `el_eval()` returns `logp` that has no missing values.
 test_that("No missing values are returned.", {
   x <- women$height
   n <- length(x)
