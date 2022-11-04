@@ -13,6 +13,21 @@ setMethod("chisq", "ELT", function(object, ...) {
   object@statistic
 })
 
+#' @describeIn chisq Extracts the chi-square statistic.
+setMethod("chisq", "SummaryEL", function(object, ...) {
+  object@statistic
+})
+
+#' @describeIn chisq Extracts the vector of chi-square statistics.
+setMethod("chisq", "SummaryELMT", function(object, ...) {
+  object@statistic
+})
+
+#' @describeIn chisq Extracts the chi-square statistic.
+setMethod("chisq", "SummaryELT", function(object, ...) {
+  object@statistic
+})
+
 #' @describeIn chisq Extracts the chi-square statistic for the overall test of
 #'   the model.
 setMethod("chisq", "SummaryLM", function(object, ...) {

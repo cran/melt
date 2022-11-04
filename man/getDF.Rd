@@ -6,6 +6,8 @@
 \alias{getDF,ELMT-method}
 \alias{getDF,ELT-method}
 \alias{getDF,logLikEL-method}
+\alias{getDF,SummaryEL-method}
+\alias{getDF,SummaryELMT-method}
 \alias{getDF,SummaryLM-method}
 \title{Degrees of freedom}
 \usage{
@@ -17,17 +19,20 @@
 
 \S4method{getDF}{logLikEL}(object)
 
+\S4method{getDF}{SummaryEL}(object)
+
+\S4method{getDF}{SummaryELMT}(object)
+
 \S4method{getDF}{SummaryLM}(object)
 }
 \arguments{
-\item{object}{An object that inherits from \linkS4class{EL},
-\linkS4class{ELT}, \linkS4class{ELMT}, or \linkS4class{SummaryLM}.}
+\item{object}{An object that contains the degrees of freedom.}
 }
 \value{
 An integer vector.
 }
 \description{
-Extracts degrees of freedom from a model.
+Extracts the degrees of freedom from a model.
 }
 \section{Methods (by class)}{
 \itemize{
@@ -39,6 +44,10 @@ Extracts degrees of freedom from a model.
 
 \item \code{getDF(logLikEL)}: Extracts the degrees of freedom.
 
+\item \code{getDF(SummaryEL)}: Extracts the degrees of freedom.
+
+\item \code{getDF(SummaryELMT)}: Extracts the vector of marginal degrees of freedom.
+
 \item \code{getDF(SummaryLM)}: Extracts the degrees of freedom.
 
 }}
@@ -48,6 +57,5 @@ fit <- el_mean(faithful, par = c(3.5, 70))
 getDF(fit)
 }
 \seealso{
-\linkS4class{EL}, \linkS4class{ELT}, \linkS4class{ELMT},
-  \linkS4class{SummaryLM}
+\linkS4class{EL}, \linkS4class{ELMT}, \linkS4class{ELT}
 }

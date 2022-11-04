@@ -2,37 +2,52 @@
 % Please edit documentation in R/AllGenerics.R, R/summary-methods.R
 \name{summary}
 \alias{summary}
-\alias{summary,LM-method}
+\alias{summary,EL-method}
+\alias{summary,ELMT-method}
+\alias{summary,ELT-method}
 \alias{summary,GLM-method}
+\alias{summary,LM-method}
 \alias{summary,QGLM-method}
 \title{Summary methods}
 \usage{
-\S4method{summary}{LM}(object, ...)
+\S4method{summary}{EL}(object, ...)
+
+\S4method{summary}{ELMT}(object, ...)
+
+\S4method{summary}{ELT}(object, ...)
 
 \S4method{summary}{GLM}(object, ...)
+
+\S4method{summary}{LM}(object, ...)
 
 \S4method{summary}{QGLM}(object, ...)
 }
 \arguments{
-\item{object}{An object that inherits from \linkS4class{LM}.}
+\item{object}{An object for which a summary is desired.}
 
 \item{...}{Further arguments passed to methods.}
 }
 \value{
-The form of the value returned by [summary()] depends on the class of
-  its argument.
+The form of the value returned by \code{\link[=summary]{summary()}} depends on the class of
+its argument.
 }
 \description{
 Provides summary methods for objects.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{summary(LM)}: Summarizes the results of the overall model test and the
-significance tests for coefficients.
+\item \code{summary(EL)}: Summarizes the test results of the specified parameters.
+
+\item \code{summary(ELMT)}: Summarizes the multiple testing results.
+
+\item \code{summary(ELT)}: Summarizes the hypothesis test results.
 
 \item \code{summary(GLM)}: Summarizes the results of the overall model test and the
 significance tests for coefficients. The dispersion parameter is extracted
 for display.
+
+\item \code{summary(LM)}: Summarizes the results of the overall model test and the
+significance tests for coefficients.
 
 \item \code{summary(QGLM)}: Summarizes the results of the overall model test and the
 significance tests for coefficients. The estimated dispersion parameter is
@@ -40,10 +55,15 @@ extracted for display.
 
 }}
 \examples{
-data("mtcars")
-fit <- el_lm(mpg ~ wt, data = mtcars)
+data("faithful")
+fit <- el_mean(faithful, par = c(3.5, 70))
 summary(fit)
+
+data("mtcars")
+fit2 <- el_lm(mpg ~ wt, data = mtcars)
+summary(fit2)
 }
 \seealso{
-\linkS4class{LM}, \linkS4class{GLM}, \linkS4class{QGLM}
+\linkS4class{EL}, \linkS4class{ELMT}, \linkS4class{ELT},
+\linkS4class{GLM}, \linkS4class{LM}, \linkS4class{QGLM},
 }

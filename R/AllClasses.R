@@ -1,3 +1,42 @@
+#' \linkS4class{ControlEL} class
+#'
+#' S4 class for computational details of empirical likelihood.
+#'
+#' @slot maxit A single integer for the maximum number of iterations for the
+#'   optimization with respect to \eqn{\theta}.
+#' @slot maxit_l A single integer for the maximum number of iterations for the
+#'   optimization with respect to \eqn{\lambda}.
+#' @slot tol A single numeric for the convergence tolerance denoted by
+#'   \eqn{\epsilon}. The iteration stops when
+#'   \deqn{\|P \nabla l(\theta^{(k)})\| < \epsilon.}
+#' @slot tol_l A single numeric for the relative convergence tolerance denoted
+#'   by \eqn{\delta}. The iteration stops when
+#'   \deqn{\|\lambda^{(k)} - \lambda^{(k - 1)}\| <
+#'   \delta\|\lambda^{(k - 1)}\| + \delta^2.}
+#' @slot step A single numeric for the step size \eqn{\gamma} for the projected
+#'   gradient descent method.
+#' @slot th A single numeric for the threshold for the negative empirical
+#'   log-likelihood ratio.
+#' @slot verbose A single logical for whether to print a message on the
+#'   convergence status.
+#' @slot keep_data A single logical for whether to keep the data used for
+#'   fitting model objects.
+#' @slot nthreads A single integer for the number of threads for parallel
+#'   computation via OpenMP (if available).
+#' @slot seed A single integer for the seed for random number generation.
+#' @slot b A single integer for the number of bootstrap replicates.
+#' @slot m A single integer for the number of Monte Carlo samples.
+#' @aliases ControlEL
+#' @examples
+#' showClass("ControlEL")
+setClass("ControlEL",
+  slots = c(
+    maxit = "integer", maxit_l = "integer", tol = "numeric", tol_l = "numeric",
+    step = "ANY", th = "ANY", verbose = "logical", keep_data = "logical",
+    nthreads = "integer", seed = "ANY", b = "integer", m = "integer"
+  )
+)
+
 #' \linkS4class{EL} class
 #'
 #' S4 class for empirical likelihood.
@@ -34,11 +73,13 @@
 #'   distribution with \eqn{p} degrees of freedom. See the references below for
 #'   more details.
 #' @slot optim A list of the following optimization results:
-#'   * `par` A numeric vector of the solution to the optimization problem.
+#'   * `par` A numeric vector of the specified parameters.
 #'   * `lambda` A numeric vector of the Lagrange multipliers of the dual
 #'   problem corresponding to `par`.
 #'   * `iterations` A single integer for the number of iterations performed.
 #'   * `convergence` A single logical for the convergence status.
+#'   * `cstr` A single logical for whether constrained EL optimization is
+#'   performed or not.
 #' @slot logp A numeric vector of the log probabilities of the empirical
 #'   likelihood.
 #' @slot logl A single numeric of the empirical log-likelihood.
@@ -56,6 +97,8 @@
 #' @slot method A single character for the method dispatch in internal
 #'   functions.
 #' @slot data A numeric matrix of the data for the model fitting.
+#' @slot control An object of class \linkS4class{ControlEL} constructed by
+#'   [el_control()].
 #' @aliases EL
 #' @references Owen A (2001). \emph{Empirical Likelihood}. Chapman & Hall/CRC.
 #'   \doi{10.1201/9781420036152}.
@@ -69,8 +112,8 @@ setClass("EL",
   slots = c(
     optim = "list", logp = "numeric", logl = "numeric", loglr = "numeric",
     statistic = "numeric", df = "integer", pval = "numeric", nobs = "integer",
-    npar = "integer", weights = "numeric",
-    coefficients = "numeric", method = "character", data = "ANY"
+    npar = "integer", weights = "numeric", coefficients = "numeric",
+    method = "character", data = "ANY", control = "ControlEL"
   )
 )
 
@@ -111,6 +154,8 @@ setClass("EL",
 #'   problem corresponding to `par`.
 #'   * `iterations` A single integer for the number of iterations performed.
 #'   * `convergence` A single logical for the convergence status.
+#'   * `cstr` A single logical for whether constrained EL optimization is
+#'   performed or not.
 #' @slot logp A numeric vector of the log probabilities of the constrained
 #'   empirical likelihood.
 #' @slot logl A single numeric of the constrained empirical log-likelihood.
@@ -129,6 +174,8 @@ setClass("EL",
 #' @slot method A single character for the method dispatch in internal
 #'   functions.
 #' @slot data A numeric matrix of the data for the model fitting.
+#' @slot control An object of class \linkS4class{ControlEL} constructed by
+#'   [el_control()].
 #' @aliases CEL
 #' @references Adimari G, Guolo A (2010).
 #'   “A Note on the Asymptotic Behaviour of Empirical Likelihood Statistics.”
@@ -196,6 +243,8 @@ setOldClass("terms")
 #' @slot method A single character for the method dispatch in internal
 #'   functions.
 #' @slot data A numeric matrix of the data for the model fitting.
+#' @slot control An object of class \linkS4class{ControlEL} constructed by
+#'   [el_control()].
 #' @aliases LM
 #' @examples
 #' showClass("LM")
@@ -231,6 +280,8 @@ setOldClass("family")
 #'   each parameter.
 #'   * `convergence` A logical vector for the convergence status of each
 #'   parameter.
+#'   * `cstr` A single logical for whether constrained EL optimization is
+#'   performed or not.
 #' @slot call A matched call.
 #' @slot terms A [`terms`] object used.
 #' @slot misc A list of various outputs obtained from the model fitting process.
@@ -260,6 +311,8 @@ setOldClass("family")
 #' @slot method A single character for the method dispatch in internal
 #'   functions.
 #' @slot data A numeric matrix of the data for the model fitting.
+#' @slot control An object of class \linkS4class{ControlEL} constructed by
+#'   [el_control()].
 #' @aliases GLM
 #' @examples
 #' showClass("GLM")
@@ -290,45 +343,6 @@ setClass("ConfregEL",
 )
 
 
-#' \linkS4class{ControlEL} class
-#'
-#' S4 class for computational details of empirical likelihood.
-#'
-#' @slot maxit A single integer for the maximum number of iterations for the
-#'   optimization with respect to \eqn{\theta}.
-#' @slot maxit_l A single integer for the maximum number of iterations for the
-#'   optimization with respect to \eqn{\lambda}.
-#' @slot tol A single numeric for the convergence tolerance denoted by
-#'   \eqn{\epsilon}. The iteration stops when
-#'   \deqn{\|P \nabla l(\theta^{(k)})\| < \epsilon.}
-#' @slot tol_l A single numeric for the relative convergence tolerance denoted
-#'   by \eqn{\delta}. The iteration stops when
-#'   \deqn{\|\lambda^{(k)} - \lambda^{(k - 1)}\| <
-#'   \delta\|\lambda^{(k - 1)}\| + \delta^2.}
-#' @slot step A single numeric for the step size \eqn{\gamma} for the projected
-#'   gradient descent method.
-#' @slot th A single numeric for the threshold for the negative empirical
-#'   log-likelihood ratio.
-#' @slot verbose A single logical for whether to print a message on the
-#'   convergence status.
-#' @slot keep_data A single logical for whether to
-#' @slot nthreads A single integer for the number of threads for parallel
-#'   computation via OpenMP (if available).
-#' @slot seed A single integer for the seed for random number generation.
-#' @slot b A single integer for the number of bootstrap replicates.
-#' @slot m A single integer for the number of Monte Carlo samples.
-#' @aliases ControlEL
-#' @examples
-#' showClass("ControlEL")
-setClass("ControlEL",
-  slots = c(
-    maxit = "integer", maxit_l = "integer", tol = "numeric", tol_l = "numeric",
-    step = "ANY", th = "ANY", verbose = "logical", keep_data = "logical",
-    nthreads = "integer", seed = "integer", b = "integer", m = "integer"
-  )
-)
-
-
 #' \linkS4class{ELD} class
 #'
 #' S4 class for empirical likelihood displacement. It inherits from `"numeric"`.
@@ -343,7 +357,7 @@ setClass("ELD", contains = "numeric")
 #'
 #' S4 class for empirical likelihood multiple tests.
 #'
-#' @slot coefficients A list of numeric vectors of the estimates of the linear
+#' @slot estimates A list of numeric vectors of the estimates of the linear
 #'   hypotheses.
 #' @slot statistic A numeric vector of minus twice the (constrained) empirical
 #'   log-likelihood ratios with asymptotic chi-square distributions.
@@ -355,14 +369,24 @@ setClass("ELD", contains = "numeric")
 #' @slot lhs A numeric matrix for the left-hand side of the hypotheses.
 #' @slot alpha A single numeric for the overall significance level.
 #' @slot calibrate A single character for the calibration method used.
+#' @slot weights A numeric vector of the re-scaled weights used for the model
+#'   fitting.
+#' @slot coefficients A numeric vector of the maximum empirical likelihood
+#'   estimates of the parameters.
+#' @slot method A single character for the method dispatch in internal
+#'   functions.
+#' @slot data A numeric matrix of the data for the model fitting.
+#' @slot control An object of class \linkS4class{ControlEL} constructed by
+#'   [el_control()].
 #' @aliases ELMT
 #' @examples
 #' showClass("ELMT")
 setClass("ELMT",
   slots = c(
-    coefficients = "list", statistic = "numeric", df = "integer",
-    pval = "numeric", cv = "numeric", rhs = "numeric", lhs = "matrix",
-    alpha = "numeric", calibrate = "character"
+    estimates = "list", statistic = "numeric", df = "integer", pval = "numeric",
+    cv = "numeric", rhs = "numeric", lhs = "matrix", alpha = "numeric",
+    calibrate = "character", weights = "numeric", coefficients = "numeric",
+    method = "character", data = "ANY", control = "ControlEL"
   )
 )
 
@@ -378,6 +402,8 @@ setClass("ELMT",
 #'   problem corresponding to `par`.
 #'   * `iterations` A single integer for the number of iterations performed.
 #'   * `convergence` A single logical for the convergence status.
+#'   * `cstr` A single logical for whether constrained EL optimization is
+#'   performed or not.
 #' @slot logp A numeric vector of the log probabilities of the (constrained)
 #'   empirical likelihood.
 #' @slot logl A single numeric of the (constrained) empirical log-likelihood.
@@ -394,6 +420,8 @@ setClass("ELMT",
 #' @slot lhs A numeric matrix for the left-hand side of the hypothesis.
 #' @slot alpha A single numeric for the significance level.
 #' @slot calibrate A single character for the calibration method used.
+#' @slot control An object of class \linkS4class{ControlEL} constructed by
+#'   [el_control()].
 #' @aliases ELT
 #' @examples
 #' showClass("ELT")
@@ -401,7 +429,8 @@ setClass("ELT",
   slots = c(
     optim = "list", logp = "numeric", logl = "numeric", loglr = "numeric",
     statistic = "numeric", df = "integer", pval = "numeric", cv = "numeric",
-    rhs = "numeric", lhs = "matrix", alpha = "numeric", calibrate = "character"
+    rhs = "numeric", lhs = "matrix", alpha = "numeric", calibrate = "character",
+    control = "ControlEL"
   )
 )
 
@@ -443,6 +472,8 @@ setClass("logLikEL", slots = c(df = "integer"), contains = "numeric")
 #'   each parameter.
 #'   * `convergence` A logical vector for the convergence status of each
 #'   parameter.
+#'   * `cstr` A single logical for whether constrained EL optimization is
+#'   performed or not.
 #' @slot call A matched call.
 #' @slot terms A [`terms`] object used.
 #' @slot misc A list of various outputs obtained from the model fitting process.
@@ -472,6 +503,8 @@ setClass("logLikEL", slots = c(df = "integer"), contains = "numeric")
 #' @slot method A single character for the method dispatch in internal
 #'   functions.
 #' @slot data A numeric matrix of the data for the model fitting.
+#' @slot control An object of class \linkS4class{ControlEL} constructed by
+#'   [el_control()].
 #' @aliases QGLM
 #' @examples
 #' showClass("QGLM")
@@ -483,11 +516,13 @@ setClass("QGLM", contains = "GLM")
 #' S4 class for standard deviation. It inherits from \linkS4class{EL} class.
 #'
 #' @slot optim A list of the following optimization results:
-#'   * `par` A numeric vector of the solution to the optimization problem.
+#'   * `par` A numeric vector of the specified parameters.
 #'   * `lambda` A numeric vector of the Lagrange multipliers of the dual
 #'   problem corresponding to `par`.
 #'   * `iterations` A single integer for the number of iterations performed.
 #'   * `convergence` A single logical for the convergence status.
+#'   * `cstr` A single logical for whether constrained EL optimization is
+#'   performed or not.
 #' @slot logp A numeric vector of the log probabilities of the empirical
 #'   likelihood.
 #' @slot logl A single numeric of the empirical log-likelihood.
@@ -505,24 +540,113 @@ setClass("QGLM", contains = "GLM")
 #' @slot method A single character for the method dispatch in internal
 #'   functions.
 #' @slot data A numeric matrix of the data for the model fitting.
+#' @slot control An object of class \linkS4class{ControlEL} constructed by
+#'   [el_control()].
 #' @aliases SD
 #' @examples
 #' showClass("SD")
 setClass("SD", contains = "EL")
 
 
+#' \linkS4class{SummaryEL} class
+#'
+#' S4 class for a summary of \linkS4class{EL} objects.
+#'
+#' @slot optim A list of the following optimization results:
+#'   * `par` A numeric vector of the specified parameters.
+#'   * `lambda` A numeric vector of the Lagrange multipliers of the dual
+#'   problem corresponding to `par`.
+#'   * `iterations` A single integer for the number of iterations performed.
+#'   * `convergence` A single logical for the convergence status.
+#'   * `cstr` A single logical for whether constrained EL optimization is
+#'   performed or not.
+#' @slot logl A single numeric of the empirical log-likelihood.
+#' @slot loglr A single numeric of the empirical log-likelihood ratio.
+#' @slot statistic A single numeric of minus twice the empirical log-likelihood
+#'   ratio with an asymptotic chi-square distribution.
+#' @slot df A single integer for the degrees of freedom of the statistic.
+#' @slot pval A single numeric for the \eqn{p}-value of the statistic.
+#' @slot nobs A single integer for the number of observations.
+#' @slot npar A single integer for the number of parameters.
+#' @slot weighted A single logical for whether the data are weighted or not.
+#' @slot coefficients A numeric vector of the maximum empirical likelihood
+#'   estimates of the parameters.
+#' @slot method A single character for the method dispatch in internal
+#'   functions.
+#' @slot control An object of class \linkS4class{ControlEL} constructed by
+#'   [el_control()].
+#' @aliases SummaryEL
+#' @examples
+#' showClass("SummaryEL")
+setClass("SummaryEL", slots = c(
+  optim = "list", logl = "numeric", loglr = "numeric", statistic = "numeric",
+  df = "integer", pval = "numeric", nobs = "integer", npar = "integer",
+  weighted = "logical", coefficients = "numeric", method = "character",
+  control = "ControlEL"
+))
+
+
+#' \linkS4class{SummaryELMT} class
+#'
+#' S4 class for a summary of \linkS4class{ELMT} objects.
+#'
+#' @slot aliased A named logical vector showing if the original coefficients are
+#'   aliased.
+#' @aliases SummaryELMT
+#' @examples
+#' showClass("SummaryELMT")
+setClass("SummaryELMT", slots = c(
+  estimates = "list", statistic = "numeric", df = "integer", pval = "numeric",
+  cv = "numeric", rhs = "numeric", lhs = "matrix", alpha = "numeric",
+  calibrate = "character"
+))
+
+
+#' \linkS4class{SummaryELT} class
+#'
+#' S4 class for a summary of \linkS4class{ELT} objects.
+#'
+#' @slot optim A list of the following optimization results:
+#'   * `par` A numeric vector of the solution to the (constrained) optimization
+#'   problem.
+#'   * `lambda` A numeric vector of the Lagrange multipliers of the dual
+#'   problem corresponding to `par`.
+#'   * `iterations` A single integer for the number of iterations performed.
+#'   * `convergence` A single logical for the convergence status.
+#'   * `cstr` A single logical for whether constrained EL optimization is
+#'   performed or not.
+#' @slot logl A single numeric of the (constrained) empirical log-likelihood.
+#' @slot loglr A single numeric of the (constrained) empirical log-likelihood
+#'   ratio.
+#' @slot statistic A single numeric of minus twice the (constrained) empirical
+#'   log-likelihood ratio with an asymptotic chi-square distribution.
+#' @slot df A single integer for the chi-square degrees of freedom of the
+#'   statistic.
+#' @slot pval A single numeric for the (calibrated) \eqn{p}-value of the
+#'   statistic.
+#' @slot cv A single numeric for the critical value.
+#' @slot rhs A numeric vector for the right-hand side of the hypothesis.
+#' @slot lhs A numeric matrix for the left-hand side of the hypothesis.
+#' @slot alpha A single numeric for the significance level.
+#' @slot calibrate A single character for the calibration method used.
+#' @slot control An object of class \linkS4class{ControlEL} constructed by
+#'   [el_control()].
+#' @aliases SummaryELT
+#' @examples
+#' showClass("SummaryELT")
+setClass("SummaryELT", slots = c(
+  optim = "list", logl = "numeric", loglr = "numeric", statistic = "numeric",
+  df = "integer", pval = "numeric", cv = "numeric", rhs = "numeric",
+  lhs = "matrix", alpha = "numeric", calibrate = "character",
+  control = "ControlEL"
+))
+
+
 #' \linkS4class{SummaryLM} class
 #'
 #' S4 class for a summary of \linkS4class{LM} objects.
 #'
-#' @slot statistic A single numeric of minus twice the (constrained) empirical
-#'   log-likelihood ratio for the overall test.
-#' @slot df A single integer for the degrees of freedom of the statistic.
-#' @slot convergence A single logical for the convergence status of the
-#'   constrained minimization.
 #' @slot sigTests A numeric matrix of the results of significance tests.
-#' @slot weighted A single logical for whether the given model is weighted or
-#'   not.
 #' @slot intercept A single logical for whether the given model has an intercept
 #'   term or not.
 #' @slot na.action Information returned by [`model.frame`] on the special
@@ -531,13 +655,39 @@ setClass("SD", contains = "EL")
 #' @slot terms A [`terms`] object used.
 #' @slot aliased A named logical vector showing if the original coefficients are
 #'   aliased.
+#' @slot optim A list of the following optimization results:
+#'   * `par` A numeric vector of the solution to the (constrained) optimization
+#'   problem.
+#'   * `lambda` A numeric vector of the Lagrange multipliers of the dual
+#'   problem corresponding to `par`.
+#'   * `iterations` A single integer for the number of iterations performed.
+#'   * `convergence` A single logical for the convergence status.
+#'   * `cstr` A single logical for whether constrained EL optimization is
+#'   performed or not.
+#' @slot logl A single numeric of the empirical log-likelihood.
+#' @slot loglr A single numeric of the empirical log-likelihood ratio.
+#' @slot statistic A single numeric of minus twice the (constrained) empirical
+#'   log-likelihood ratio for the overall test.
+#' @slot df A single integer for the degrees of freedom of the statistic.
+#' @slot pval A single numeric for the \eqn{p}-value of the statistic.
+#' @slot nobs A single integer for the number of observations.
+#' @slot npar A single integer for the number of parameters.
+#' @slot weighted A single logical for whether the data are weighted or not.
+#' @slot coefficients A numeric vector of the maximum empirical likelihood
+#'   estimates of the parameters.
+#' @slot method A single character for the method dispatch in internal
+#'   functions.
+#' @slot control An object of class \linkS4class{ControlEL} constructed by
+#'   [el_control()].
 #' @aliases SummaryLM
 #' @examples
 #' showClass("SummaryLM")
 setClass("SummaryLM", slots = c(
-  statistic = "numeric", df = "integer", convergence = "logical",
-  sigTests = "matrix", weighted = "logical", intercept = "logical",
-  na.action = "ANY", call = "call", terms = "terms", aliased = "logical"
+  sigTests = "matrix", intercept = "logical", na.action = "ANY", call = "call",
+  terms = "terms", aliased = "logical", optim = "list", logl = "numeric",
+  loglr = "numeric", statistic = "numeric", df = "integer", pval = "numeric",
+  nobs = "integer", npar = "integer", weighted = "logical",
+  coefficients = "numeric", method = "character", control = "ControlEL"
 ))
 
 
@@ -548,14 +698,7 @@ setClass("SummaryLM", slots = c(
 #'
 #' @slot family A [`family`] object used.
 #' @slot dispersion A single numeric for the estimated dispersion parameter.
-#' @slot statistic A single numeric of minus twice the (constrained) empirical
-#'   log-likelihood ratio for the overall test.
-#' @slot df A single integer for the degrees of freedom of the statistic.
-#' @slot convergence A single logical for the convergence status of the
-#'   constrained minimization.
 #' @slot sigTests A numeric matrix of the results of significance tests.
-#' @slot weighted A single logical for whether the given model is weighted or
-#'   not.
 #' @slot intercept A single logical for whether the given model has an intercept
 #'   term or not.
 #' @slot na.action Information returned by [`model.frame`] on the special
@@ -564,12 +707,35 @@ setClass("SummaryLM", slots = c(
 #' @slot terms A [`terms`] object used.
 #' @slot aliased A named logical vector showing if the original coefficients are
 #'   aliased.
+#' @slot optim A list of the following optimization results:
+#'   * `par` A numeric vector of the solution to the (constrained) optimization
+#'   problem.
+#'   * `lambda` A numeric vector of the Lagrange multipliers of the dual
+#'   problem corresponding to `par`.
+#'   * `iterations` A single integer for the number of iterations performed.
+#'   * `convergence` A single logical for the convergence status.
+#'   * `cstr` A single logical for whether constrained EL optimization is
+#'   performed or not.
+#' @slot logl A single numeric of the empirical log-likelihood.
+#' @slot loglr A single numeric of the empirical log-likelihood ratio.
+#' @slot statistic A single numeric of minus twice the (constrained) empirical
+#'   log-likelihood ratio for the overall test.
+#' @slot df A single integer for the degrees of freedom of the statistic.
+#' @slot pval A single numeric for the \eqn{p}-value of the statistic.
+#' @slot nobs A single integer for the number of observations.
+#' @slot npar A single integer for the number of parameters.
+#' @slot weighted A single logical for whether the data are weighted or not.
+#' @slot coefficients A numeric vector of the maximum empirical likelihood
+#'   estimates of the parameters.
+#' @slot method A single character for the method dispatch in internal
+#'   functions.
+#' @slot control An object of class \linkS4class{ControlEL} constructed by
+#'   [el_control()].
 #' @aliases SummaryGLM
 #' @examples
 #' showClass("SummaryGLM")
 setClass("SummaryGLM",
-  slots = c(family = "family", dispersion = "numeric"),
-  contains = "SummaryLM"
+  slots = c(family = "family", dispersion = "numeric"), contains = "SummaryLM"
 )
 
 
@@ -580,14 +746,7 @@ setClass("SummaryGLM",
 #'
 #' @slot family A [`family`] object used.
 #' @slot dispersion A single numeric for the estimated dispersion parameter.
-#' @slot statistic A single numeric of minus twice the (constrained) empirical
-#'   log-likelihood ratio for the overall test.
-#' @slot df A single integer for the degrees of freedom of the statistic.
-#' @slot convergence A single logical for the convergence status of the
-#'   constrained minimization.
 #' @slot sigTests A numeric matrix of the results of significance tests.
-#' @slot weighted A single logical for whether the given model is weighted or
-#'   not.
 #' @slot intercept A single logical for whether the given model has an intercept
 #'   term or not.
 #' @slot na.action Information returned by [`model.frame`] on the special
@@ -596,6 +755,30 @@ setClass("SummaryGLM",
 #' @slot terms A [`terms`] object used.
 #' @slot aliased A named logical vector showing if the original coefficients are
 #'   aliased.
+#' @slot optim A list of the following optimization results:
+#'   * `par` A numeric vector of the solution to the (constrained) optimization
+#'   problem.
+#'   * `lambda` A numeric vector of the Lagrange multipliers of the dual
+#'   problem corresponding to `par`.
+#'   * `iterations` A single integer for the number of iterations performed.
+#'   * `convergence` A single logical for the convergence status.
+#'   * `cstr` A single logical for whether constrained EL optimization is
+#'   performed or not.
+#' @slot logl A single numeric of the empirical log-likelihood.
+#' @slot loglr A single numeric of the empirical log-likelihood ratio.
+#' @slot statistic A single numeric of minus twice the (constrained) empirical
+#'   log-likelihood ratio for the overall test.
+#' @slot df A single integer for the degrees of freedom of the statistic.
+#' @slot pval A single numeric for the \eqn{p}-value of the statistic.
+#' @slot nobs A single integer for the number of observations.
+#' @slot npar A single integer for the number of parameters.
+#' @slot weighted A single logical for whether the data are weighted or not.
+#' @slot coefficients A numeric vector of the maximum empirical likelihood
+#'   estimates of the parameters.
+#' @slot method A single character for the method dispatch in internal
+#'   functions.
+#' @slot control An object of class \linkS4class{ControlEL} constructed by
+#'   [el_control()].
 #' @aliases SummaryQGLM
 #' @examples
 #' showClass("SummaryQGLM")

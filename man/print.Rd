@@ -7,25 +7,33 @@
 \alias{print,ELT-method}
 \alias{print,LM-method}
 \alias{print,logLikEL-method}
+\alias{print,SummaryEL-method}
+\alias{print,SummaryELMT-method}
+\alias{print,SummaryELT-method}
 \alias{print,SummaryGLM-method}
 \alias{print,SummaryLM-method}
-\alias{print,SummaryQGLM-method}
 \title{Print methods}
 \usage{
 \S4method{print}{EL}(x, digits = max(3L, getOption("digits") - 3L), ...)
 
-\S4method{print}{ELMT}(
-  x,
-  digits = max(3L, getOption("digits") - 3L),
-  signif.stars = getOption("show.signif.stars"),
-  ...
-)
+\S4method{print}{ELMT}(x, digits = max(3L, getOption("digits") - 3L), ...)
 
 \S4method{print}{ELT}(x, digits = max(3L, getOption("digits") - 3L), ...)
 
 \S4method{print}{LM}(x, digits = max(3L, getOption("digits") - 3L), ...)
 
 \S4method{print}{logLikEL}(x, digits = getOption("digits"), ...)
+
+\S4method{print}{SummaryEL}(x, digits = max(3L, getOption("digits") - 3L), ...)
+
+\S4method{print}{SummaryELMT}(
+  x,
+  digits = max(3L, getOption("digits") - 3L),
+  signif.stars = getOption("show.signif.stars"),
+  ...
+)
+
+\S4method{print}{SummaryELT}(x, digits = max(3L, getOption("digits") - 3L), ...)
 
 \S4method{print}{SummaryGLM}(
   x,
@@ -40,28 +48,20 @@
   signif.stars = getOption("show.signif.stars"),
   ...
 )
-
-\S4method{print}{SummaryQGLM}(
-  x,
-  digits = max(3L, getOption("digits") - 3L),
-  signif.stars = getOption("show.signif.stars"),
-  ...
-)
 }
 \arguments{
-\item{x}{An object that inherits from \linkS4class{EL},
-\linkS4class{ELT}, \linkS4class{ELMT}, or \linkS4class{SummaryLM}.}
+\item{x}{An object to be printed.}
 
 \item{...}{Further arguments passed to methods.}
 
 \item{digits}{A single integer for the number of significant digits to be
-passed to [format()].}
+passed to \code{\link[=format]{format()}}.}
 
-\item{signif.stars}{A single logical. If `TRUE`, ‘significance stars’
-are printed for each parameter.}
+\item{signif.stars}{A single logical. If \code{TRUE}, ‘significance stars’ are
+printed for each parameter.}
 }
 \value{
-The argument `x` (invisibly).
+The argument \code{x} (invisibly).
 }
 \description{
 Provides print methods for objects.
@@ -72,7 +72,6 @@ fit <- el_mean(precip, par = 40)
 print(fit)
 }
 \seealso{
-\linkS4class{EL}, \linkS4class{ELT}, \linkS4class{ELMT},
-  \linkS4class{LM}, \linkS4class{SummaryLM}, \linkS4class{SummaryGLM},
-  \linkS4class{SummaryQGLM}
+\linkS4class{EL}, \linkS4class{ELMT}, \linkS4class{ELT},
+\linkS4class{LM}
 }

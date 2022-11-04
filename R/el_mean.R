@@ -36,15 +36,19 @@
 #' @examples
 #' ## Scalar mean
 #' data("precip")
-#' el_mean(precip, 30)
+#' fit <- el_mean(precip, 30)
+#' fit
+#' summary(fit)
 #'
 #' ## Vector mean
 #' data("faithful")
-#' el_mean(faithful, par = c(3.5, 70))
+#' fit2 <- el_mean(faithful, par = c(3.5, 70))
+#' summary(fit2)
 #'
 #' ## Weighted data
 #' w <- rep(c(1, 2), each = nrow(faithful) / 2)
-#' el_mean(faithful, par = c(3.5, 70), weights = w)
+#' fit3 <- el_mean(faithful, par = c(3.5, 70), weights = w)
+#' summary(fit3)
 #' @export
 el_mean <- function(x,
                     par,
@@ -73,6 +77,7 @@ el_mean <- function(x,
   )
   optim <- validate_optim(out$optim)
   names(optim$par) <- names(est)
+  optim$cstr <- FALSE
   if (control@verbose) {
     message(
       "Convergence ",
@@ -84,6 +89,6 @@ el_mean <- function(x,
     loglr = out$loglr, statistic = out$statistic, df = p,
     pval = pchisq(out$statistic, df = p, lower.tail = FALSE), nobs = n,
     npar = p, weights = w, coefficients = est, method = "mean",
-    data = if (control@keep_data) mm else NULL
+    data = if (control@keep_data) mm else NULL, control = control
   )
 }

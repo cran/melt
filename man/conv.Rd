@@ -5,6 +5,8 @@
 \alias{conv,CEL-method}
 \alias{conv,EL-method}
 \alias{conv,ELT-method}
+\alias{conv,SummaryEL-method}
+\alias{conv,SummaryELT-method}
 \alias{conv,SummaryLM-method}
 \title{Convergence check}
 \usage{
@@ -14,11 +16,14 @@
 
 \S4method{conv}{ELT}(object, ...)
 
+\S4method{conv}{SummaryEL}(object, ...)
+
+\S4method{conv}{SummaryELT}(object, ...)
+
 \S4method{conv}{SummaryLM}(object, ...)
 }
 \arguments{
-\item{object}{An object that inherits from \linkS4class{EL},
-\linkS4class{SummaryLM}, or \linkS4class{ELT}.}
+\item{object}{An object that contains the convergence status.}
 
 \item{...}{Further arguments passed to methods.}
 }
@@ -26,7 +31,7 @@
 A single logical.
 }
 \description{
-Extracts convergence status from a model.
+Extracts the convergence status from a model.
 }
 \section{Methods (by class)}{
 \itemize{
@@ -36,8 +41,14 @@ the parameter.
 \item \code{conv(EL)}: Extracts the convergence status of the model with respect to
 the Lagrange multiplier.
 
-\item \code{conv(ELT)}: Extracts the convergence status of the model with respect to
-the parameter (or the Lagrange multiplier if `lhs` is `NULL`).
+\item \code{conv(ELT)}: Extracts the convergence status of the test with respect to
+the parameter (or the Lagrange multiplier if the argument \code{lhs} is \code{NULL}).
+
+\item \code{conv(SummaryEL)}: Extracts the convergence status of the model with respect to
+the Lagrange multiplier.
+
+\item \code{conv(SummaryELT)}: Extracts the convergence status of the test with respect to
+the parameter (or the Lagrange multiplier if the argument \code{lhs} is \code{NULL}).
 
 \item \code{conv(SummaryLM)}: Extracts the convergence status of the model. See the
 documentation of \linkS4class{EL} and \linkS4class{CEL}.
@@ -50,5 +61,5 @@ fit <- el_lm(mpg ~ ., data = mtcars)
 conv(fit)
 }
 \seealso{
-\linkS4class{EL}, \linkS4class{ELT}, \linkS4class{SummaryLM}
+\linkS4class{CEL}, \linkS4class{EL}, \linkS4class{ELT}, \code{\link[=getOptim]{getOptim()}}
 }

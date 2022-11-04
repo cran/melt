@@ -3,12 +3,18 @@
 \name{nobs}
 \alias{nobs}
 \alias{nobs,EL-method}
+\alias{nobs,SummaryEL-method}
+\alias{nobs,SummaryLM-method}
 \title{Number of observations in a model}
 \usage{
 \S4method{nobs}{EL}(object, ...)
+
+\S4method{nobs}{SummaryEL}(object, ...)
+
+\S4method{nobs}{SummaryLM}(object, ...)
 }
 \arguments{
-\item{object}{An object that inherits from \linkS4class{EL}.}
+\item{object}{An object that contains the number of observations.}
 
 \item{...}{Further arguments passed to methods.}
 }
@@ -16,7 +22,7 @@
 A single integer.
 }
 \description{
-Extracts number of observations from a model.
+Extracts the number of observations from a model.
 }
 \examples{
 data("precip")

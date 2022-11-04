@@ -126,8 +126,9 @@ el_lm <- function(formula,
       ),
       optim = list(
         par = numeric(), lambda = numeric(), iterations = integer(),
-        convergence = logical()
-      ), df = 0L, nobs = nrow(x), npar = 0L, method = NA_character_
+        convergence = logical(), cstr = logical()
+      ), df = 0L, nobs = nrow(x), npar = 0L, method = NA_character_,
+      control = control
     ))
   } else {
     x <- model.matrix(mt, mf, NULL)
@@ -151,6 +152,7 @@ el_lm <- function(formula,
   )
   optim <- validate_optim(out$optim)
   names(optim$par) <- pnames
+  optim$cstr <- intercept
   df <- if (intercept && p > 1L) p - 1L else p
   pval <- pchisq(out$statistic, df = df, lower.tail = FALSE)
   if (control@verbose) {
@@ -168,6 +170,6 @@ el_lm <- function(formula,
     optim = optim, logp = setNames(out$logp, names(y)), logl = out$logl,
     loglr = out$loglr, statistic = out$statistic, df = df, pval = pval,
     nobs = n, npar = p, weights = w, coefficients = fit$coefficients,
-    method = "lm", data = if (control@keep_data) mm else NULL
+    method = "lm", data = if (control@keep_data) mm else NULL, control = control
   )
 }

@@ -24,7 +24,7 @@ optimization with respect to \eqn{\lambda}.}
 \item{\code{tol_l}}{A single numeric for the relative convergence tolerance denoted
 by \eqn{\delta}. The iteration stops when
 \deqn{\|\lambda^{(k)} - \lambda^{(k - 1)}\| <
-\delta\|\lambda^{(k - 1)}\| + \delta^2.}}
+  \delta\|\lambda^{(k - 1)}\| + \delta^2.}}
 
 \item{\code{step}}{A single numeric for the step size \eqn{\gamma} for the projected
 gradient descent method.}
@@ -35,7 +35,8 @@ log-likelihood ratio.}
 \item{\code{verbose}}{A single logical for whether to print a message on the
 convergence status.}
 
-\item{\code{keep_data}}{A single logical for whether to}
+\item{\code{keep_data}}{A single logical for whether to keep the data used for
+fitting model objects.}
 
 \item{\code{nthreads}}{A single integer for the number of threads for parallel
 computation via OpenMP (if available).}

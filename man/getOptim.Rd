@@ -4,28 +4,38 @@
 \alias{getOptim}
 \alias{getOptim,EL-method}
 \alias{getOptim,ELT-method}
+\alias{getOptim,SummaryEL-method}
+\alias{getOptim,SummaryELT-method}
+\alias{getOptim,SummaryLM-method}
 \title{Optimization results}
 \usage{
 \S4method{getOptim}{EL}(object, ...)
 
 \S4method{getOptim}{ELT}(object, ...)
+
+\S4method{getOptim}{SummaryEL}(object, ...)
+
+\S4method{getOptim}{SummaryELT}(object, ...)
+
+\S4method{getOptim}{SummaryLM}(object, ...)
 }
 \arguments{
-\item{object}{An object that inherits from \linkS4class{EL} or
-\linkS4class{ELT}.}
+\item{object}{An object that contains the optimization results.}
 
 \item{...}{Further arguments passed to methods.}
 }
 \value{
 A list with the following optimization results:
-  * `par` A numeric vector of the parameter value. See the documentation of
-  \linkS4class{EL} and \linkS4class{CEL}.
-  * `lambda` A numeric vector of the Lagrange multipliers.
-  * `iterations` A single integer for the number of iterations performed.
-  * `convergence` A single logical for the convergence status.
+\itemize{
+\item \code{par} A numeric vector of the parameter value. See the documentation of
+\linkS4class{EL} and \linkS4class{CEL}.
+\item \code{lambda} A numeric vector of the Lagrange multipliers.
+\item \code{iterations} A single integer for the number of iterations performed.
+\item \code{convergence} A single logical for the convergence status.
+}
 }
 \description{
-Extracts optimization results from a model.
+Extracts the optimization results from a model.
 }
 \examples{
 data("precip")
@@ -33,5 +43,5 @@ fit <- el_mean(precip, par = 40)
 getOptim(fit)
 }
 \seealso{
-\linkS4class{EL}, \linkS4class{CEL}, \linkS4class{ELT}, [sigTests()]
+\linkS4class{EL}, \linkS4class{ELT}, \code{\link[=sigTests]{sigTests()}}
 }

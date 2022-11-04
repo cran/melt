@@ -4,15 +4,23 @@
 \alias{logLR}
 \alias{logLR,EL-method}
 \alias{logLR,ELT-method}
+\alias{logLR,SummaryEL-method}
+\alias{logLR,SummaryELT-method}
+\alias{logLR,SummaryLM-method}
 \title{Empirical log-likelihood ratio}
 \usage{
 \S4method{logLR}{EL}(object, ...)
 
 \S4method{logLR}{ELT}(object, ...)
+
+\S4method{logLR}{SummaryEL}(object, ...)
+
+\S4method{logLR}{SummaryELT}(object, ...)
+
+\S4method{logLR}{SummaryLM}(object, ...)
 }
 \arguments{
-\item{object}{An object that inherits from \linkS4class{EL} or
-\linkS4class{ELT}.}
+\item{object}{An object that contains the empirical log-likelihood ratio.}
 
 \item{...}{Further arguments passed to methods.}
 }
@@ -20,7 +28,7 @@
 A single numeric.
 }
 \description{
-Extracts empirical log-likelihood ratio from a model.
+Extracts the empirical log-likelihood ratio from a model.
 }
 \examples{
 data("precip")
@@ -29,8 +37,8 @@ logLR(fit)
 }
 \references{
 Baggerly KA (1998).
-  “Empirical Likelihood as a Goodness-of-Fit Measure.” \emph{Biometrika},
-  85(3), 535--547. \doi{10.1093/biomet/asm094}.
+“Empirical Likelihood as a Goodness-of-Fit Measure.” \emph{Biometrika},
+85(3), 535--547. \doi{10.1093/biomet/asm094}.
 }
 \seealso{
 \linkS4class{EL}, \linkS4class{ELT}

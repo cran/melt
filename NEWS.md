@@ -1,3 +1,23 @@
+# melt 1.9.0
+## NEW FEATURES
+* `confint()` is applicable to an `EMLT` object to produce simultaneous confidence intervals.
+
+* All model objects gain `control` slot of `ControlEL` class. All methods that apply to these objects inherit `control` unless it is overwritten by the user explicitly.
+
+## MINOR IMPROVEMENTS
+* `summary()` is applicable to an object that inherits from `EL`, `ELT`, and `EMLT`.
+
+* A more informative message is printed regarding the convergence status.
+
+* `optim` slot in all model or summary objects gains a single logical element `cstr` that shows whether a constrained EL computation is involved or not. 
+
+## DEPRECATED AND DEFUNCT
+* `logLik()` is deprecated and will be removed in a future release. 
+
+## BUG FIXES
+* `confreg()` checks whether `parm` matches the parameters in `object` when a `character` vector is specified for `parm`.
+
+
 # melt 1.8.0
 ## NEW FEATURES
 * New accessor method `logProb()` extracts a model's log probabilities of empirical likelihood.
@@ -82,7 +102,7 @@
 
 * `probit` link produces a more accurate result in `el_glm()`.
 
-* `print()` method for an `EL` object shows whether the data are weighted or not.
+* `print()` for an `EL` object shows whether the data are weighted or not.
 
 * All row or column names (if any) of input data are preserved in a fitted `EL` object.
 

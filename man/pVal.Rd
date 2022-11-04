@@ -5,6 +5,10 @@
 \alias{pVal,EL-method}
 \alias{pVal,ELMT-method}
 \alias{pVal,ELT-method}
+\alias{pVal,SummaryEL-method}
+\alias{pVal,SummaryELT-method}
+\alias{pVal,SummaryELMT-method}
+\alias{pVal,SummaryLM-method}
 \title{\eqn{p}-value}
 \usage{
 \S4method{pVal}{EL}(object, ...)
@@ -12,19 +16,26 @@
 \S4method{pVal}{ELMT}(object, ...)
 
 \S4method{pVal}{ELT}(object, ...)
+
+\S4method{pVal}{SummaryEL}(object, ...)
+
+\S4method{pVal}{SummaryELT}(object, ...)
+
+\S4method{pVal}{SummaryELMT}(object, ...)
+
+\S4method{pVal}{SummaryLM}(object, ...)
 }
 \arguments{
-\item{object}{An object that inherits from \linkS4class{EL},
-\linkS4class{ELT}, or \linkS4class{ELMT}.}
+\item{object}{An object that contains the \eqn{p}-value.}
 
 \item{...}{Further arguments passed to methods.}
 }
 \value{
-The form of the value returned by [pVal()] depends on the class of
-  its argument.
+The form of the value returned by \code{\link[=pVal]{pVal()}} depends on the class of
+its argument.
 }
 \description{
-Extracts \eqn{p}-value from a model.
+Extracts the \eqn{p}-value from a model.
 }
 \section{Methods (by class)}{
 \itemize{
@@ -34,6 +45,14 @@ Extracts \eqn{p}-value from a model.
 
 \item \code{pVal(ELT)}: Extracts the \eqn{p}-value.
 
+\item \code{pVal(SummaryEL)}: Extracts the \eqn{p}-value.
+
+\item \code{pVal(SummaryELT)}: Extracts the \eqn{p}-value.
+
+\item \code{pVal(SummaryELMT)}: Extracts the multiplicity adjusted \eqn{p}-values.
+
+\item \code{pVal(SummaryLM)}: Extracts the \eqn{p}-value.
+
 }}
 \examples{
 data("precip")
@@ -41,5 +60,5 @@ fit <- el_mean(precip, par = 40)
 pVal(fit)
 }
 \seealso{
-\linkS4class{EL}, \linkS4class{ELT}, \linkS4class{ELMT}, [chisq()]
+\linkS4class{EL}, \linkS4class{ELMT}, \linkS4class{ELT}, \code{\link[=chisq]{chisq()}}
 }

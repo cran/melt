@@ -40,7 +40,7 @@ test_that("Identical weights means no weights.", {
   fit <- el_mean(precip, par = 60)
   fit2 <- el_mean(precip, par = 60, weights = rep(0.5, length(precip)))
   fit2@weights <- numeric()
-  expect_equal(fit, fit2)
+  expect_equal(getOptim(fit), getOptim(fit2))
 })
 
 test_that("Conversion between `logl` and `loglr`.", {
@@ -91,6 +91,13 @@ test_that("`print()` method.", {
   fit <- el_mean(precip, par = 60)
   expect_output(show(fit))
   expect_output(print(fit))
+  out <- summary(fit)
+  expect_output(print(out))
+  expect_output(show(out))
   fit@statistic <- numeric()
   expect_output(print(fit))
+  fit2 <- el_mean(women$height, par = 60, weights = women$weight)
+  out2 <- summary(fit2)
+  expect_output(print(out2))
+  expect_output(show(out2))
 })

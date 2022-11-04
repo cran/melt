@@ -4,24 +4,30 @@
 \alias{coef}
 \alias{coef,EL-method}
 \alias{coef,ELMT-method}
+\alias{coef,SummaryEL-method}
+\alias{coef,SummaryLM-method}
 \title{Model coefficients}
 \usage{
 \S4method{coef}{EL}(object, ...)
 
 \S4method{coef}{ELMT}(object, ...)
+
+\S4method{coef}{SummaryEL}(object, ...)
+
+\S4method{coef}{SummaryLM}(object, ...)
 }
 \arguments{
-\item{object}{An object that inherits from \linkS4class{EL} or
-\linkS4class{ELMT}.}
+\item{object}{An object that contains the maximum empirical likelihood
+estimates.}
 
 \item{...}{Further arguments passed to methods.}
 }
 \value{
-The form of the value returned by [coef()] depends on the class of
-  its argument.
+The form of the value returned by \code{\link[=coef]{coef()}} depends on the class of
+its argument.
 }
 \description{
-Extracts maximum empirical likelihood estimates from a model.
+Extracts the maximum empirical likelihood estimates from a model.
 }
 \section{Methods (by class)}{
 \itemize{
@@ -31,6 +37,12 @@ likelihood estimates.
 \item \code{coef(ELMT)}: Extracts the list of numeric vectors of the maximum
 empirical likelihood estimates. Each element of the list corresponds to a
 distinct hypothesis.
+
+\item \code{coef(SummaryEL)}: Extracts the numeric vector of the maximum empirical
+likelihood estimates.
+
+\item \code{coef(SummaryLM)}: Extracts the numeric vector of the maximum empirical
+likelihood estimates.
 
 }}
 \examples{

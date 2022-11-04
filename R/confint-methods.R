@@ -3,7 +3,7 @@ setMethod("confint", "EL", function(object,
                                     parm,
                                     level = 0.95,
                                     cv = NULL,
-                                    control = el_control()) {
+                                    control = NULL) {
   # No confidence interval for an empty model
   if (getDF(object) == 0L) {
     ci <- matrix(numeric(0), nrow = 0L, ncol = 2L)
@@ -12,9 +12,13 @@ setMethod("confint", "EL", function(object,
   }
   stopifnot(
     "`object` has no `data`. Fit the model with `keep_data == TRUE`." =
-      (isFALSE(is.null(getData(object)))),
-    "Invalid `control` specified." = (is(control, "ControlEL"))
+      (isFALSE(is.null(getData(object))))
   )
+  if (is.null(control)) {
+    control <- getControlEL(object)
+  } else {
+    stopifnot("Invalid `control` specified." = is(control, "ControlEL"))
+  }
   est <- coef(object)
   # Index for tracking the parameters
   idx <- seq(length(est))
@@ -72,5 +76,43 @@ setMethod("confint", "EL", function(object,
     )
   }
   dimnames(ci) <- list(pnames, c("lower", "upper"))
+  ci
+})
+
+#' @rdname confint
+setMethod("confint", "ELMT", function(object,
+                                      cv = NULL,
+                                      control = NULL) {
+  stopifnot(
+    "Each hypothesis must correspond to a linear combination of parameters." =
+      (isTRUE(all(getDF(object) == 1L))),
+    "`object` has no `data`. Fit the model with `keep_data == TRUE`." =
+      (isFALSE(is.null(getData(object))))
+  )
+  if (is.null(control)) {
+    control <- getControlEL(object)
+  } else {
+    stopifnot("Invalid `control` specified." = is(control, "ControlEL"))
+  }
+  method <- getMethodEL(object)
+  cv <- if (is.null(cv)) object@cv else validate_cv(cv, th)
+  maxit <- control@maxit
+  maxit_l <- control@maxit_l
+  tol <- control@tol
+  tol_l <- control@tol_l
+  step <- control@step
+  th <- control@th
+  nthreads <- control@nthreads
+  w <- getWeights(object)
+  estimates <- unlist(getEstimates(object))
+  ci <- compute_confidence_intervals_EMLT(
+    method, getData(object), coef(object), object@lhs, estimates, cv, maxit,
+    maxit_l, tol, tol_l, step, th, nthreads, w
+  )
+  dimnames(ci) <-
+    list(
+      describe_hypothesis(object@rhs, object@lhs, colnames(object@lhs)),
+      c("lower", "upper")
+    )
   ci
 })

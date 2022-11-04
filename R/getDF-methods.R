@@ -19,6 +19,16 @@ setMethod("getDF", "logLikEL", function(object) {
 })
 
 #' @describeIn getDF Extracts the degrees of freedom.
+setMethod("getDF", "SummaryEL", function(object) {
+  object@df
+})
+
+#' @describeIn getDF Extracts the vector of marginal degrees of freedom.
+setMethod("getDF", "SummaryELMT", function(object) {
+  object@df
+})
+
+#' @describeIn getDF Extracts the degrees of freedom.
 setMethod("getDF", "SummaryLM", function(object) {
   object@df
 })

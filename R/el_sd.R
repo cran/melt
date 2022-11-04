@@ -32,7 +32,9 @@
 #' data("women")
 #' x <- women$height
 #' w <- women$weight
-#' el_sd(x, mean = 65, sd = 5, weights = w)
+#' fit <- el_sd(x, mean = 65, sd = 5, weights = w)
+#' fit
+#' summary(fit)
 #' @export
 el_sd <- function(x, mean, sd, weights = NULL, control = el_control()) {
   nm <- names(x)
@@ -62,6 +64,7 @@ el_sd <- function(x, mean, sd, weights = NULL, control = el_control()) {
   out <- compute_EL("sd", sd, mm, control@maxit_l, control@tol_l, control@th, w)
   optim <- validate_optim(out$optim)
   names(optim$sd) <- names(sd)
+  optim$cstr <- FALSE
   if (control@verbose) {
     message(
       "Convergence ",
@@ -73,6 +76,6 @@ el_sd <- function(x, mean, sd, weights = NULL, control = el_control()) {
     loglr = out$loglr, statistic = out$statistic, df = 1L,
     pval = pchisq(out$statistic, df = 1L, lower.tail = FALSE), nobs = n,
     npar = 1L, weights = w, coefficients = est, method = "sd",
-    data = if (control@keep_data) mm else NULL
+    data = if (control@keep_data) mm else NULL, control = control
   )
 }
