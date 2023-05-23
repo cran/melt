@@ -122,18 +122,6 @@ setMethod("print", "LM", function(x,
 setMethod("show", "LM", function(object) print(object))
 
 #' @rdname print
-setMethod("print", "logLikEL", function(x, digits = getOption("digits"), ...) {
-  cat("'Empirical log Lik.' ", paste(format(getDataPart(x), digits = digits),
-    collapse = ", "
-  ),
-  " (df=", format(getDF(x)), ")\n",
-  sep = ""
-  )
-  invisible(x)
-})
-setMethod("show", "logLikEL", function(object) print(object))
-
-#' @rdname print
 setMethod(
   "print", "SummaryEL",
   function(x, digits = max(3L, getOption("digits") - 3L), ...) {
@@ -277,7 +265,7 @@ setMethod(
       cat("\nLagrange multipliers:\n")
       print.default(getOptim(x)$lambda, digits = digits, ...)
       cat("\nMaximum EL estimates:\n")
-      print.default(coef(x), digits = digits, ...)
+      print.default(coef(x)[,1L], digits = digits, ...)
       cat(paste(
         "\nlogL:", format.default(logL(x), digits = digits, ...),
         ", logLR:", format.default(logLR(x), digits = digits, ...)
@@ -297,12 +285,12 @@ setMethod(
       cat("\nNo Coefficients\n")
     } else {
       cat("\nCoefficients:\n")
-      coefs <- sigTests(x)
+      coefs <- coef(x)
       if (any(aliased)) {
         cn <- names(aliased)
         coefs <-
           matrix(NA, length(aliased), 3L, dimnames = list(cn, colnames(coefs)))
-        coefs[!aliased, ] <- sigTests(x)
+        coefs[!aliased, ] <- coef(x)
       }
       printCoefmat(coefs,
         digits = digits, signif.stars = signif.stars,
@@ -349,7 +337,7 @@ setMethod(
       cat("\nLagrange multipliers:\n")
       print.default(getOptim(x)$lambda, digits = digits, ...)
       cat("\nMaximum EL estimates:\n")
-      print.default(coef(x), digits = digits, ...)
+      print.default(coef(x)[,1L], digits = digits, ...)
       cat(paste(
         "\nlogL:", format.default(logL(x), digits = digits, ...),
         ", logLR:", format.default(logLR(x), digits = digits, ...)
@@ -369,12 +357,12 @@ setMethod(
       cat("\nNo Coefficients\n")
     } else {
       cat("\nCoefficients:\n")
-      coefs <- sigTests(x)
+      coefs <- coef(x)
       if (any(aliased)) {
         cn <- names(aliased)
         coefs <-
           matrix(NA, length(aliased), 3L, dimnames = list(cn, colnames(coefs)))
-        coefs[!aliased, ] <- sigTests(x)
+        coefs[!aliased, ] <- coef(x)
       }
       printCoefmat(coefs,
         digits = digits, signif.stars = signif.stars,

@@ -435,18 +435,6 @@ setClass("ELT",
 )
 
 
-#' \linkS4class{logLikEL} class
-#'
-#' S4 class for empirical log-likelihood. It inherits from `"numeric"`.
-#'
-#' @slot df A single integer for the degrees of freedom or the number of
-#'   (estimated) parameters in the model.
-#' @aliases logLikEL
-#' @examples
-#' showClass("logLikEL")
-setClass("logLikEL", slots = c(df = "integer"), contains = "numeric")
-
-
 #' \linkS4class{QGLM} class
 #'
 #' S4 class for generalized linear models with quasi-likelihood methods. It
@@ -646,7 +634,7 @@ setClass("SummaryELT", slots = c(
 #'
 #' S4 class for a summary of \linkS4class{LM} objects.
 #'
-#' @slot sigTests A numeric matrix of the results of significance tests.
+#' @slot coefficients A numeric matrix of the results of significance tests.
 #' @slot intercept A single logical for whether the given model has an intercept
 #'   term or not.
 #' @slot na.action Information returned by [`model.frame`] on the special
@@ -673,8 +661,6 @@ setClass("SummaryELT", slots = c(
 #' @slot nobs A single integer for the number of observations.
 #' @slot npar A single integer for the number of parameters.
 #' @slot weighted A single logical for whether the data are weighted or not.
-#' @slot coefficients A numeric vector of the maximum empirical likelihood
-#'   estimates of the parameters.
 #' @slot method A single character for the method dispatch in internal
 #'   functions.
 #' @slot control An object of class \linkS4class{ControlEL} constructed by
@@ -683,11 +669,11 @@ setClass("SummaryELT", slots = c(
 #' @examples
 #' showClass("SummaryLM")
 setClass("SummaryLM", slots = c(
-  sigTests = "matrix", intercept = "logical", na.action = "ANY", call = "call",
-  terms = "terms", aliased = "logical", optim = "list", logl = "numeric",
-  loglr = "numeric", statistic = "numeric", df = "integer", pval = "numeric",
-  nobs = "integer", npar = "integer", weighted = "logical",
-  coefficients = "numeric", method = "character", control = "ControlEL"
+  coefficients = "matrix", intercept = "logical", na.action = "ANY",
+  call = "call", terms = "terms", aliased = "logical", optim = "list",
+  logl = "numeric", loglr = "numeric", statistic = "numeric", df = "integer",
+  pval = "numeric", nobs = "integer", npar = "integer", weighted = "logical",
+  method = "character", control = "ControlEL"
 ))
 
 
@@ -698,7 +684,7 @@ setClass("SummaryLM", slots = c(
 #'
 #' @slot family A [`family`] object used.
 #' @slot dispersion A single numeric for the estimated dispersion parameter.
-#' @slot sigTests A numeric matrix of the results of significance tests.
+#' @slot coefficients A numeric matrix of the results of significance tests.
 #' @slot intercept A single logical for whether the given model has an intercept
 #'   term or not.
 #' @slot na.action Information returned by [`model.frame`] on the special
@@ -725,8 +711,6 @@ setClass("SummaryLM", slots = c(
 #' @slot nobs A single integer for the number of observations.
 #' @slot npar A single integer for the number of parameters.
 #' @slot weighted A single logical for whether the data are weighted or not.
-#' @slot coefficients A numeric vector of the maximum empirical likelihood
-#'   estimates of the parameters.
 #' @slot method A single character for the method dispatch in internal
 #'   functions.
 #' @slot control An object of class \linkS4class{ControlEL} constructed by
@@ -746,7 +730,7 @@ setClass("SummaryGLM",
 #'
 #' @slot family A [`family`] object used.
 #' @slot dispersion A single numeric for the estimated dispersion parameter.
-#' @slot sigTests A numeric matrix of the results of significance tests.
+#' @slot coefficients A numeric matrix of the results of significance tests.
 #' @slot intercept A single logical for whether the given model has an intercept
 #'   term or not.
 #' @slot na.action Information returned by [`model.frame`] on the special
@@ -773,8 +757,6 @@ setClass("SummaryGLM",
 #' @slot nobs A single integer for the number of observations.
 #' @slot npar A single integer for the number of parameters.
 #' @slot weighted A single logical for whether the data are weighted or not.
-#' @slot coefficients A numeric vector of the maximum empirical likelihood
-#'   estimates of the parameters.
 #' @slot method A single character for the method dispatch in internal
 #'   functions.
 #' @slot control An object of class \linkS4class{ControlEL} constructed by

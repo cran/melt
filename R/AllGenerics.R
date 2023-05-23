@@ -231,9 +231,10 @@ setGeneric("eld", function(object, control = NULL) {
 #'   of the test statistics, the adjusted p-values are estimated by Monte Carlo
 #'   simulation.
 #' @return An object of class of \linkS4class{ELMT}.
-#' @references Kim E, MacEachern S, Peruggia M (2021).
+#' @references Kim E, MacEachern SN, Peruggia M (2023).
 #'   “Empirical Likelihood for the Analysis of Experimental Designs.”
-#'   arxiv:2112.09206. URL <https://arxiv.org/abs/2112.09206>.
+#'   \emph{Journal of Nonparametric Statistics}.
+#'   \doi{10.1080/10485252.2023.2206919}.
 #' @seealso \linkS4class{EL}, \linkS4class{ELMT}, [elt()], [el_control()]
 #' @usage NULL
 #' @examples
@@ -415,45 +416,6 @@ setGeneric("getOptim", function(object, ...) standardGeneric("getOptim"))
 #' logL(fit)
 #' @exportMethod logL
 setGeneric("logL", function(object, ...) standardGeneric("logL"))
-
-
-#' Maximum empirical log-likelihood
-#'
-#' @description Extracts empirical log-likelihood from a model evaluated at the
-#'   estimated coefficients.
-#'
-#' \emph{This function is deprecated and will be removed in a future release.}
-#'
-#' @param object An object that inherits from \linkS4class{EL}.
-#' @param ... Further arguments passed to methods.
-#' @details Let \eqn{X_i} be independent and identically distributed
-#'   \eqn{p}-dimensional random variable from an unknown distribution \eqn{P}
-#'   for \eqn{i = 1, \dots, n}. We assume that \eqn{P} has a positive definite
-#'   covariance matrix. For a parameter of interest
-#'   \eqn{\theta(F) \in {\rm{I\!R}}^p}, consider a \eqn{p}-dimensional smooth
-#'   estimating function \eqn{g(X_i, \theta)} with a moment condition
-#'   \deqn{\textrm{E}[g(X_i, \theta)] = 0.}
-#'   We assume that there exists an unique \eqn{\theta_0} that solves the above
-#'   equation. Given a value of \eqn{\theta}, the (profile) empirical likelihood
-#'   ratio is defined by
-#'   \deqn{R(\theta) =
-#'   \max_{p_i}\left\{\prod_{i = 1}^n np_i :
-#'   \sum_{i = 1}^n p_i g(X_i, \theta) = 0, p_i \geq 0, \sum_{i = 1}^n p_i = 1
-#'   \right\}.}
-#'   The maximum empirical likelihood estimator \eqn{\hat{\theta}} solves
-#'   \eqn{n^{-1}\sum_{i = 1}^n g(X_i, \hat{\theta}) = 0} and yields
-#'   \eqn{p_i = 1/n} for \eqn{i = 1, \dots, n}. [logLik()] gives \eqn{-n\log n},
-#'   the maximum empirical log-likelihood. Use [logL()] instead to extract the
-#'   (constrained) empirical log-likelihood computed from a model.
-#' @return An object of class \linkS4class{logLikEL}.
-#' @seealso \linkS4class{EL}, [logL()]
-#' @usage NULL
-#' @examples
-#' data("precip")
-#' fit <- el_mean(precip, par = 40)
-#' logLik(fit)
-#' @exportMethod logLik
-setGeneric("logLik", function(object, ...) standardGeneric("logLik"))
 
 
 #' Empirical log-likelihood ratio

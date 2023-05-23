@@ -1,3 +1,13 @@
+# melt 1.10.0
+## NEW FEATURES
+* `el_glm()` accepts `quasipoisson` family with `"sqrt"` link function for the argument `family`.
+
+## DEPRECATED AND DEFUNCT
+* `sigTests()` is deprecated in favor of `coef()` for an object that inherits from `SummaryLM` and will be removed in a future release. 
+
+* `logLik()` is removed.
+
+
 # melt 1.9.0
 ## NEW FEATURES
 * `confint()` is applicable to an `EMLT` object to produce simultaneous confidence intervals.

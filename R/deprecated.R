@@ -30,9 +30,10 @@
 #' @param abstol A single numeric for the the absolute convergence tolerance for
 #'   optimization. Defaults to `1e-08`.
 #' @return A list with class \code{c("pairwise", "melt")}.
-#' @references Kim E, MacEachern S, Peruggia M (2021).
+#' @references Kim E, MacEachern SN, Peruggia M (2023).
 #'   “Empirical Likelihood for the Analysis of Experimental Designs.”
-#'   arxiv:2112.09206. URL <https://arxiv.org/abs/2112.09206>.
+#'   \emph{Journal of Nonparametric Statistics}.
+#'   \doi{10.1080/10485252.2023.2206919}.
 #' @examples
 #' \dontrun{
 #' # All pairwise comparisons
@@ -187,18 +188,12 @@ print.pairwise <- function(x, ...) {
   cat("\n\n")
 }
 
-#' @rdname logLik
-setMethod("logLik", "EL", function(object, ...) {
+#' @describeIn sigTests Extracts a matrix with the results of significance
+#'   tests.
+setMethod("sigTests", "SummaryLM", function(object, ...) {
   .Deprecated(
-    msg = "`logLik()` is deprecated in melt v1.8.1. Use `logL()` instead."
+    msg =
+      "`sigTests()` is deprecated for signature 'SummaryLM' in melt v1.9.1."
   )
-  if (!missing(...)) {
-    warning("Extra arguments are not supported.")
-  }
-  stopifnot(
-    "`object` has no `data`. Fit the model with `keep_data == TRUE`." =
-      (isFALSE(is.null(getData(object))))
-  )
-  out <- elt(object, rhs = coef(object))
-  new("logLikEL", .Data = logL(out), df = getNumPar(object))
+  object@coefficients
 })
