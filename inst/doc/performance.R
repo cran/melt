@@ -1,4 +1,4 @@
-## ---- include = FALSE---------------------------------------------------------
+## ----include=FALSE------------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -9,12 +9,12 @@ knitr::opts_chunk$set(
   out.width = "100%"
 )
 
-## ----setup--------------------------------------------------------------------
-library(melt)
-library(microbenchmark)
-library(ggplot2)
+## ----echo=FALSE---------------------------------------------------------------
+library(melt, warn.conflicts = FALSE)
 
 ## -----------------------------------------------------------------------------
+library(ggplot2)
+library(microbenchmark)
 set.seed(3175775)
 p <- 10
 par <- rnorm(p, sd = 0.1)
