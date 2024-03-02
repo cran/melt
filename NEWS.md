@@ -1,3 +1,10 @@
+# melt 1.11.1
+## MINOR IMPROVEMENTS
+* Some function arguments now utilize the checkmate package for validation.
+
+* The package vignette has been updated.
+
+
 # melt 1.11.0
 ## MINOR IMPROVEMENTS
 * Updated package vignette with the publication in the Journal of Statistical Software.

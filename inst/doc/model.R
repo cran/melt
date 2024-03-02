@@ -1,9 +1,5 @@
 ## ----include=FALSE------------------------------------------------------------
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  dpi = 300
-)
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", dpi = 300)
 
 ## ----echo=FALSE---------------------------------------------------------------
 library(melt, warn.conflicts = FALSE)
