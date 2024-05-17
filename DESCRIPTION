@@ -1,7 +1,7 @@
 Type: Package
 Package: melt
 Title: Multiple Empirical Likelihood Tests
-Version: 1.11.3
+Version: 1.11.4
 Authors@R: c(
     person("Eunseop", "Kim", , "markean@pm.me", role = c("aut", "cph", "cre")),
     person("Steven", "MacEachern", role = c("ctb", "ths")),
@@ -37,7 +37,7 @@ Language: en-US
 LazyData: true
 NeedsCompilation: yes
 RoxygenNote: 7.3.1
-Packaged: 2024-04-12 04:29:46 UTC; markean
+Packaged: 2024-05-17 00:24:31 UTC; markean
 Author: Eunseop Kim [aut, cph, cre],
   Steven MacEachern [ctb, ths],
   Mario Peruggia [ctb, ths],
@@ -45,4 +45,4 @@ Author: Eunseop Kim [aut, cph, cre],
   Alex Stringer [rev]
 Maintainer: Eunseop Kim <markean@pm.me>
 Repository: CRAN
-Date/Publication: 2024-04-12 05:00:04 UTC
+Date/Publication: 2024-05-17 04:20:02 UTC
